@@ -1,0 +1,1 @@
+function includeHTML(){const e=document.querySelectorAll("[include-html]");e.forEach(t=>{const n=t.getAttribute("include-html");n&&fetch(n).then(r=>r.text()).then(r=>{t.innerHTML=r,t.removeAttribute("include-html"),includeHTML()}).catch(()=>{t.innerHTML="Erro ao carregar componente: "+n})})}document.addEventListener("DOMContentLoaded",includeHTML);

@@ -1,0 +1,114 @@
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Painel Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .admin-grid{display:flex;gap:16px;margin-bottom:18px;flex-wrap:wrap;}
+    .admin-card{flex:1;min-width:220px;padding:18px;border-radius:12px;background:linear-gradient(180deg,rgba(7,42,74,0.9),rgba(6,36,64,0.95));box-shadow:0 6px 20px rgba(0,0,0,0.35);}
+    .admin-card h3{margin:0 0 8px 0}
+    .admin-card .big{font-size:22px;font-weight:700;margin-top:8px}
+    .admin-actions{display:flex;gap:10px;flex-direction:column;width:220px;}
+    @media(min-width:900px){ .admin-actions{flex-direction:column;} .admin-grid{flex-wrap:nowrap} }
+  </style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo">CoelhoLog</div>
+  <div class="menu">
+    <a href="/colaborador/dashboard.html">🏠 Dashboard</a>
+    <a href="/colaborador/recebiveis.html">💰 Recebíveis</a>
+    <a href="/colaborador/solicitar_emprestimo.html">📝 Solicitar Empréstimo</a>
+    <a href="/colaborador/status_emprestimos.html">📄 Status Empréstimos</a>
+    <div class="menu-title" style="margin-top:10px;color:#98a9bf;font-size:12px">Administração</div>
+    <div id="adminLinks"></div>
+    <div style="margin-top:14px"><a href="/" onclick="logout()">🔓 Logout</a></div>
+  </div>
+</div>
+
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+  const user = JSON.parse(localStorage.getItem('user')||'null');
+  const adminLinks = document.getElementById('adminLinks');
+  if(user && user.role==='financeiro' && adminLinks){
+    adminLinks.innerHTML = `
+      <a href="/admin/dashboard.html">⚙️ Admin Dashboard</a>
+      <a href="/admin/criar_colaborador.html">👤 Criar Colaborador</a>
+      <a href="/admin/lancar_recebiveis.html">➕ Lançar Recebíveis</a>
+      <a href="/admin/alterar_recebiveis.html">✏️ Alterar Recebíveis</a>
+      <a href="/admin/alterar_emprestimos.html">✏️ Alterar Empréstimos</a>
+    `;
+  }
+});
+function logout(){ localStorage.removeItem('user'); window.location = '/'; }
+</script>
+
+
+<div include-html="../components/sidebar_admin.html"></div>
+<main class="main">
+  <div class="header-right"><button class="btn" onclick="logout()">Logout</button></div>
+  <h1>Painel Admin</h1>
+
+  <div class="admin-grid">
+    <div class="admin-card" id="card-emprestimos">
+      <h3>📦 Solicitações de Empréstimo</h3>
+      <div class="small">Pendentes</div>
+      <div class="big" id="emprestimos-pendentes">0</div>
+      <div class="small">Total solicitado: <span id="emprestimos-total">R$ 0,00</span></div>
+      <div style="margin-top:10px"><a href="/admin/alterar_emprestimos.html" class="btn">Gerenciar Empréstimos</a></div>
+    </div>
+
+    <div class="admin-card" id="card-pendentes">
+      <h3>💰 Recebíveis Pendentes</h3>
+      <div class="small">Quantidade</div>
+      <div class="big" id="receb-pendentes">0</div>
+      <div class="small">Total pendente: <span id="receb-pendentes-total">R$ 0,00</span></div>
+      <div style="margin-top:10px"><a href="/admin/alterar_recebiveis.html" class="btn">Gerenciar Recebíveis</a></div>
+    </div>
+
+    <div class="admin-card" id="card-pagos">
+      <h3>✅ Recebíveis Pagos</h3>
+      <div class="small">Quantidade</div>
+      <div class="big" id="receb-pagos">0</div>
+      <div class="small">Total recebido: <span id="receb-pagos-total">R$ 0,00</span></div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap">
+    <div style="flex:1" id="recent-list" class="card">
+      <h3>Últimas solicitações</h3>
+      <div id="sol-list"></div>
+    </div>
+    <div class="admin-actions card">
+      <a class="btn" href="/admin/criar_colaborador.html">Criar Colaborador</a>
+      <a class="btn" href="/admin/lancar_recebiveis.html">Lançar Recebíveis</a>
+      <a class="btn" href="/admin/alterar_emprestimos.html">Alterar Empréstimos</a>
+      <a class="btn" href="/admin/alterar_recebiveis.html">Alterar Recebíveis</a>
+    </div>
+  </div>
+</main>
+
+
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+  const user = JSON.parse(localStorage.getItem('user')||'null');
+  const adminLinks = document.getElementById('adminLinks');
+  if(user && user.role==='financeiro' && adminLinks){
+    adminLinks.innerHTML = `
+      <a href="/admin/dashboard.html">⚙️ Admin Dashboard</a>
+      <a href="/admin/criar_colaborador.html">👤 Criar Colaborador</a>
+      <a href="/admin/lancar_recebiveis.html">➕ Lançar Recebíveis</a>
+      <a href="/admin/alterar_recebiveis.html">✏️ Alterar Recebíveis</a>
+      <a href="/admin/alterar_emprestimos.html">✏️ Alterar Empréstimos</a>
+    `;
+  }
+});
+function logout(){ localStorage.removeItem('user'); window.location = '/'; }
+</script>
+
+<script src="/js/include.js"></script></body>
+</html>
