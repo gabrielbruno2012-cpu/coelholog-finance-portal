@@ -1,82 +1,235 @@
+// backend/server_sqlite.js
 const express = require('express');
 const path = require('path');
-const bodyParser = require('body-parser');
 const sqlite3 = require('sqlite3').verbose();
+const cors = require('cors');
+
 const app = express();
-app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname,'../public')));
+const PORT = process.env.PORT || 3000;
 
-const DB = path.join(__dirname,'sql','coelholog.db');
-const db = new sqlite3.Database(DB);
+// CAMINHO DO BANCO (ajuste o nome se o seu for outro)
+const DB_PATH = path.join(__dirname, 'database.sqlite'); 
+// Ex: se o seu arquivo for "coelholog.db", troque a linha acima para:
+// const DB_PATH = path.join(__dirname, 'coelholog.db');
 
-// login
-app.post('/api/login',(req,res)=>{
-  const {email,password} = req.body;
-  db.get('SELECT id,nome,email,role FROM usuarios WHERE email=? AND senha=?',[email,password],(err,row)=>{
-    if(err) return res.status(500).json({error:'db'});
-    if(!row) return res.status(401).json({error:'invalid'});
-    res.json(row);
-  });
+const db = new sqlite3.Database(DB_PATH, (err) => {
+  if (err) {
+    console.error('Erro ao conectar no SQLite:', err.message);
+  } else {
+    console.log('Conectado ao SQLite em:', DB_PATH);
+  }
 });
 
-// usuarios
-app.get('/api/usuarios',(req,res)=>{
-  db.all('SELECT id,nome,email,role,cnpj,telefone FROM usuarios ORDER BY id',[],(e,rows)=>{ if(e) return res.status(500).json({error:'db'}); res.json(rows); });
-});
-app.post('/api/usuarios',(req,res)=>{
-  const {nome,email,senha,role,cnpj,telefone} = req.body;
-  db.get('SELECT id FROM usuarios WHERE email=?',[email],(err,row)=>{
-    if(row) return res.status(409).json({error:'exists'});
-    db.run('INSERT INTO usuarios(nome,email,senha,role,cnpj,telefone) VALUES (?,?,?,?,?,?)',[nome,email,senha,role||'colaborador',cnpj||'',telefone||''], function(err){
-      if(err) return res.status(500).json({error:'db'});
-      db.get('SELECT id,nome,email,role FROM usuarios WHERE id=?',[this.lastID], (e,u)=> res.json(u));
+app.use(cors());
+app.use(express.json());
+
+// SERVE TUDO A PARTIR DA RAIZ DO PROJETO (index, css, js, admin, etc)
+app.use(express.static(path.join(__dirname, '..')));
+
+// ===== Helpers para usar o banco com Promises =====
+function dbAll(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) return reject(err);
+      resolve(rows);
     });
   });
-});
+}
 
-// recebiveis
-app.get('/api/recebiveis',(req,res)=>{
-  const userId = req.query.user_id;
-  if(userId){
-    db.all('SELECT r.id,r.usuario_id,u.nome,r.data,r.valor,r.tipo,r.status FROM recebiveis r LEFT JOIN usuarios u ON u.id=r.usuario_id WHERE r.usuario_id=? ORDER BY r.id DESC',[userId], (e,rows)=>{ if(e) return res.status(500).json({error:'db'}); res.json(rows); });
-    return;
-  }
-  db.all('SELECT r.id,r.usuario_id,u.nome,r.data,r.valor,r.tipo,r.status FROM recebiveis r LEFT JOIN usuarios u ON u.id=r.usuario_id ORDER BY r.id DESC',[],(e,rows)=>{ if(e) return res.status(500).json({error:'db'}); res.json(rows); });
-});
-app.post('/api/recebiveis',(req,res)=>{
-  const {usuario_id,data,valor,tipo,status} = req.body;
-  db.run('INSERT INTO recebiveis(usuario_id,data,valor,tipo,status) VALUES (?,?,?,?,?)',[usuario_id,data,valor,tipo,status||'Pendente'], function(err){
-    if(err) return res.status(500).json({error:'db'});
-    res.json({id:this.lastID});
+function dbRun(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, function (err) {
+      if (err) return reject(err);
+      resolve(this);
+    });
   });
-});
-app.put('/api/recebiveis/:id',(req,res)=>{
-  const id=req.params.id;
-  const {data,valor,tipo,status} = req.body;
-  db.run('UPDATE recebiveis SET data=?,valor=?,tipo=?,status=? WHERE id=?',[data,valor,tipo,status,id], function(err){ if(err) return res.status(500).json({error:'db'}); res.json({ok:true}); });
-});
+}
 
-// emprestimos
-app.get('/api/emprestimos',(req,res)=>{
-  const userId = req.query.user_id;
-  if(userId){
-    db.all('SELECT e.id,e.usuario_id,u.nome,e.valor,e.parcelamentos,e.status,e.criado_em FROM emprestimos e LEFT JOIN usuarios u ON u.id=e.usuario_id WHERE e.usuario_id=? ORDER BY e.id DESC',[userId],(e,rows)=>{ if(e) return res.status(500).json({error:'db'}); res.json(rows); });
-    return;
+// ================== ROTAS ADMIN ==================
+// Listar colaboradores (para o select de lançar recebível)
+app.get('/api/admin/listar-colaboradores', async (req, res) => {
+  try {
+    const rows = await dbAll(`
+      SELECT id, nome, email
+      FROM colaboradores
+      ORDER BY nome
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error('Erro listar-colaboradores:', err);
+    res.status(500).json({ success: false, error: 'Erro ao listar colaboradores' });
   }
-  db.all('SELECT e.id,e.usuario_id,u.nome,e.valor,e.parcelamentos,e.status,e.criado_em FROM emprestimos e LEFT JOIN usuarios u ON u.id=e.usuario_id ORDER BY e.id DESC',[],(e,rows)=>{ if(e) return res.status(500).json({error:'db'}); res.json(rows); });
-});
-app.post('/api/emprestimos',(req,res)=>{
-  const {usuario_id,valor,parcelamentos} = req.body;
-  db.get('SELECT id FROM emprestimos WHERE usuario_id=? AND status IN ("Em análise","Aprovado")',[usuario_id],(err,row)=>{
-    if(err) return res.status(500).json({error:'db'});
-    if(row) return res.status(400).json({error:'Já existe um empréstimo ativo'});
-    db.run('INSERT INTO emprestimos(usuario_id,valor,parcelamentos,status,criado_em) VALUES (?,?,?,?,datetime("now"))',[usuario_id,valor,parcelamentos,'Em análise'], function(e){ if(e) return res.status(500).json({error:'db'}); res.json({id:this.lastID, status:'Em análise'}); });
-  });
-});
-app.put('/api/emprestimos/:id',(req,res)=>{
-  const id=req.params.id; const {status,valor,parcelamentos} = req.body;
-  db.run('UPDATE emprestimos SET status=?,valor=?,parcelamentos=? WHERE id=?',[status,valor,parcelamentos,id], function(err){ if(err) return res.status(500).json({error:'db'}); res.json({ok:true}); });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, ()=> console.log('Server running', PORT));
+// Criar colaborador (tela criar_colaborador.html)
+app.post('/api/admin/criar-colaborador', async (req, res) => {
+  try {
+    const { nome, email, senha, cpf } = req.body;
+
+    if (!nome || !email || !senha || !cpf) {
+      return res.status(400).json({ success: false, error: 'Campos obrigatórios faltando' });
+    }
+
+    await dbRun(
+      `INSERT INTO colaboradores (nome, email, senha, cpf) VALUES (?, ?, ?, ?)`,
+      [nome, email, senha, cpf]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Erro criar-colaborador:', err);
+    res.status(500).json({ success: false, error: 'Erro ao criar colaborador' });
+  }
+});
+
+// Recebíveis pendentes (dashboard + alterar_recebiveis.html)
+app.get('/api/admin/recebiveis-pendentes', async (req, res) => {
+  try {
+    const rows = await dbAll(`
+      SELECT 
+        r.id,
+        r.valor,
+        r.status,
+        r.data,
+        c.nome AS colaborador,
+        c.email AS email_colaborador
+      FROM recebiveis r
+      LEFT JOIN colaboradores c ON c.id = r.colaborador_id
+      WHERE r.status = 'PENDENTE'
+      ORDER BY r.data DESC, r.id DESC
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error('Erro recebiveis-pendentes:', err);
+    res.status(500).json({ success: false, error: 'Erro ao buscar recebíveis pendentes' });
+  }
+});
+
+// Recebíveis pagos (dashboard)
+app.get('/api/admin/recebiveis-pagos', async (req, res) => {
+  try {
+    const rows = await dbAll(`
+      SELECT 
+        r.id,
+        r.valor,
+        r.status,
+        r.data,
+        c.nome AS colaborador,
+        c.email AS email_colaborador
+      FROM recebiveis r
+      LEFT JOIN colaboradores c ON c.id = r.colaborador_id
+      WHERE r.status = 'PAGO'
+      ORDER BY r.data DESC, r.id DESC
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error('Erro recebiveis-pagos:', err);
+    res.status(500).json({ success: false, error: 'Erro ao buscar recebíveis pagos' });
+  }
+});
+
+// Atualizar status de recebível (alterar_recebiveis.html)
+app.post('/api/admin/recebiveis-atualizar', async (req, res) => {
+  try {
+    const { id, status } = req.body;
+
+    if (!id || !status) {
+      return res.status(400).json({ success: false, error: 'ID ou status faltando' });
+    }
+
+    await dbRun(
+      `UPDATE recebiveis SET status = ? WHERE id = ?`,
+      [status, id]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Erro recebiveis-atualizar:', err);
+    res.status(500).json({ success: false, error: 'Erro ao atualizar recebível' });
+  }
+});
+
+// Empréstimos pendentes (dashboard + alterar_emprestimos.html)
+app.get('/api/admin/emprestimos-pendentes', async (req, res) => {
+  try {
+    const rows = await dbAll(`
+      SELECT 
+        e.id,
+        e.valor,
+        e.status,
+        e.data,
+        c.nome AS colaborador,
+        c.email AS email_colaborador
+      FROM emprestimos e
+      LEFT JOIN colaboradores c ON c.id = e.colaborador_id
+      WHERE e.status = 'PENDENTE'
+      ORDER BY e.data DESC, e.id DESC
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error('Erro emprestimos-pendentes:', err);
+    res.status(500).json({ success: false, error: 'Erro ao buscar empréstimos' });
+  }
+});
+
+// Atualizar status de empréstimo (alterar_emprestimos.html)
+app.post('/api/admin/emprestimos-atualizar', async (req, res) => {
+  try {
+    const { id, status } = req.body;
+
+    if (!id || !status) {
+      return res.status(400).json({ success: false, error: 'ID ou status faltando' });
+    }
+
+    await dbRun(
+      `UPDATE emprestimos SET status = ? WHERE id = ?`,
+      [status, id]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Erro emprestimos-atualizar:', err);
+    res.status(500).json({ success: false, error: 'Erro ao atualizar empréstimo' });
+  }
+});
+
+// Lançar novo recebível (lancar_recebiveis.html)
+app.post('/api/admin/lancar-recebivel', async (req, res) => {
+  try {
+    const { colaborador, valor, data } = req.body;
+
+    if (!colaborador || !valor || !data) {
+      return res.status(400).json({ success: false, error: 'Campos obrigatórios faltando' });
+    }
+
+    await dbRun(
+      `INSERT INTO recebiveis (colaborador_id, valor, data, status)
+       VALUES (?, ?, ?, 'PENDENTE')`,
+      [colaborador, valor, data]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Erro lancar-recebivel:', err);
+    res.status(500).json({ success: false, error: 'Erro ao lançar recebível' });
+  }
+});
+
+// ============== ROTA DEFAULT ==============
+// Se alguém acessar /admin, cair em /admin/dashboard.html
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'admin', 'dashboard.html'));
+});
+
+// SPA fallback (se necessário) – opcional
+app.get('*', (req, res, next) => {
+  // Deixa o Express servir arquivos estáticos normais
+  if (req.path.startsWith('/api/')) return next();
+  if (req.path.startsWith('/admin/')) return next();
+  // Página inicial
+  res.sendFile(path.join(__dirname, '..', 'index.html'));
+});
+
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
+});
