@@ -1,12 +1,42 @@
+<style>
+#sidebar {
+    background: #062345;
+    color: #fff;
+    width: 240px;
+    position: fixed;
+    top: 70px;
+    left: 0;
+    bottom: 0;
+    padding-top: 15px;
+    font-family: Arial, sans-serif;
+}
 
-<div class="sidebar">
-  <div class="logo">CoelhoLog Admin</div>
-  <div class="menu">
-    <a href="/admin/dashboard_admin.html">📊 Dashboard</a>
-    <a href="/admin/alterar_recebiveis.html">💰 Alterar Recebíveis</a>
-    <a href="/admin/alterar_emprestimos.html">📄 Alterar Empréstimos</a>
-    <a href="/admin/criar_colaborador.html">👤 Criar Colaborador</a>
-    <a href="/admin/lancar_recebiveis.html">➕ Lançar Recebível</a>
-    <a href="/admin/todos_emprestimos.html">📚 Todos Empréstimos</a>
-  </div>
-</div>
+#sidebar ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#sidebar ul li a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    color: #ffffff !important;       /* 🔥 Força o branco sempre */
+    text-decoration: none;
+    font-size: 15px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+#sidebar ul li a:hover {
+    background: rgba(255,255,255,0.12); /* 🔥 Hover moderno */
+    color: #ffffff !important;
+}
+
+#sidebar ul li a:active,
+#sidebar ul li a:focus {
+    background: rgba(255,255,255,0.18);
+    color: #ffffff !important;
+}
+</style>
