@@ -1,56 +1,8 @@
-<div class="sidebar-header" style="text-align:center; padding:25px 10px;">
-    <img src="/img/logo.png" alt="CoelhoLog" style="width:140px; user-select:none;">
+<div class="sidebar">
+    <a href="dashboard_admin.html"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+    <a href="alterar_recebiveis.html"><i class="fa-solid fa-pen-to-square"></i> Alterar Recebíveis</a>
+    <a href="alterar_emprestimos.html"><i class="fa-solid fa-file-signature"></i> Alterar Empréstimos</a>
+    <a href="criar_colaborador.html"><i class="fa-solid fa-user-plus"></i> Criar Colaborador</a>
+    <a href="lancar_recebiveis.html"><i class="fa-solid fa-plus"></i> Lançar Recebível</a>
+    <a href="todos_emprestimos.html"><i class="fa-solid fa-list-check"></i> Todos Empréstimos</a>
 </div>
-
-<ul>
-    <li><a href="/admin/dashboard_admin.html">🏠 Dashboard</a></li>
-    <li><a href="/admin/alterar_recebiveis.html">💰 Alterar Recebíveis</a></li>
-    <li><a href="/admin/alterar_emprestimos.html">📝 Alterar Empréstimos</a></li>
-    <li><a href="/admin/criar_colaborador.html">👤 Criar Colaborador</a></li>
-    <li><a href="/admin/lancar_recebiveis.html">➕ Lançar Recebível</a></li>
-    <li><a href="/admin/todos_emprestimos.html">📊 Todos Empréstimos</a></li>
-</ul>
-
-<style>
-#sidebar {
-    background: #062345;
-    color: #fff;
-    width: 240px;
-    position: fixed;
-    top: 70px;
-    left: 0;
-    bottom: 0;
-    padding-top: 15px;
-    font-family: Arial, sans-serif;
-    z-index: 1000; /* Sidebar sempre visível */
-}
-
-#sidebar ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-#sidebar ul li a {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 14px 20px;
-    color: #ffffff !important;  /* Sempre branco */
-    text-decoration: none;
-    font-size: 15px;
-    border-radius: 6px;
-    font-weight: 500;
-}
-
-#sidebar ul li a:hover {
-    background: rgba(255,255,255,0.12);
-    color: #ffffff !important;
-}
-
-#sidebar ul li a:active,
-#sidebar ul li a:focus {
-    background: rgba(255,255,255,0.18);
-    color: #ffffff !important;
-}
-</style>
