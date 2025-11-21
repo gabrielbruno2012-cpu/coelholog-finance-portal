@@ -5,350 +5,236 @@
   <title>Painel Administrativo - CoelhoLog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Se você já tem /css/style.css pode manter -->
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
     body {
-      font-family: Arial, sans-serif;
-      background: #f3f6fc;
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: #F3F6FB;
       display: flex;
     }
 
-    /* SIDEBAR LATERAL */
+    /* SIDEBAR */
     .sidebar {
       width: 220px;
-      background: #06254d;
-      color: #fff;
+      background: #062647;
+      color: white;
       height: 100vh;
-      position: fixed;
-      left: 0;
-      top: 0;
-      display: flex;
-      flex-direction: column;
       padding-top: 20px;
+      position: fixed;
     }
 
-    .sidebar-logo-top {
-      padding: 10px 20px 20px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .sidebar-logo-top img {
-      height: 36px;
-    }
-
-    .sidebar-logo-top span {
-      font-weight: 700;
-      font-size: 20px;
-      color: #ffcc00;
-    }
-
-    .sidebar nav a {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 20px;
+    .sidebar a {
+      display: block;
+      padding: 14px 20px;
+      color: #e3e3e3;
       text-decoration: none;
-      color: #fff;
       font-size: 14px;
-      border-radius: 6px;
-      margin: 2px 10px;
+      font-weight: 500;
     }
 
-    .sidebar nav a:hover {
-      background: rgba(255,255,255,0.12);
+    .sidebar a:hover {
+      background: #0a3a63;
+      color: white;
     }
 
-    .sidebar nav a i {
-      width: 18px;
-      text-align: center;
+    .sidebar i {
+      margin-right: 10px;
     }
 
-    /* ÁREA PRINCIPAL */
-    .main {
-      margin-left: 220px;
-      width: calc(100% - 220px);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* TOPO */
+    /* TOPBAR */
     .topbar {
+      position: fixed;
+      left: 220px;
+      right: 0;
+      top: 0;
       height: 70px;
-      background: #ffffff;
-      border-bottom: 1px solid #e2e2e2;
+      background: #062647;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
       padding: 0 30px;
     }
 
-    .topbar-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .topbar-logo img {
-      height: 36px;
-    }
-
-    .topbar-logo span {
-      font-size: 20px;
-      font-weight: 700;
-      color: #ffcc00; /* texto Log amarelo */
+    .topbar img {
+      height: 42px;
     }
 
     .logout-btn {
-      background: #ffcc00;
+      background: #FFC300;
       border: none;
-      padding: 8px 18px;
+      padding: 12px 22px;
       border-radius: 6px;
-      cursor: pointer;
       font-weight: 600;
+      cursor: pointer;
     }
 
     /* CONTEÚDO */
     .content {
-      padding: 25px 30px 40px 30px;
+      margin-left: 220px;
+      margin-top: 90px;
+      padding: 20px 40px;
     }
 
-    .content h1 {
-      font-size: 28px;
+    h2 {
+      color: #062647;
+      font-size: 26px;
       margin-bottom: 25px;
-      color: #0b2140;
     }
 
-    /* CARDS RESUMO */
+    /* CARDS */
     .cards {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 18px;
-      margin-bottom: 25px;
+      display: flex;
+      gap: 20px;
     }
 
     .card {
-      background: #ffffff;
-      border-radius: 14px;
-      padding: 18px 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      width: 23%;
     }
 
     .card small {
-      color: #666;
-      font-size: 13px;
+      color: #555;
     }
 
-    .card .value {
+    .card h3 {
       margin-top: 8px;
+      color: #062647;
       font-size: 22px;
-      font-weight: 700;
-      color: #0b2140;
     }
 
-    /* BOX TABELA */
-    .box {
-      background: #ffffff;
-      border-radius: 14px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      padding: 20px 22px 25px 22px;
-    }
-
-    .box h2 {
-      font-size: 20px;
-      margin-bottom: 16px;
-      color: #0b2140;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-
-    thead {
-      background: #eef1f5;
-    }
-
-    th, td {
-      padding: 10px 12px;
-      text-align: left;
+    /* TABELA */
+    .table-box {
+      background: white;
+      margin-top: 30px;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
     }
 
     th {
-      color: #0b2140;
-      font-weight: 700;
+      background: #EAEFF3;
+      padding: 12px;
+      color: #062647;
+      font-weight: 600;
     }
 
     td {
-      color: #0b2140;
-      font-weight: 500; /* azul escuro visível */
-      border-top: 1px solid #edf0f4;
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      color: #062647;
+      font-weight: 500;
     }
   </style>
 </head>
+
 <body>
 
-  <!-- SIDEBAR LATERAL -->
-  <aside class="sidebar">
-    <div class="sidebar-logo-top">
-      <img src="/img/logo.png" alt="Coelho">
-      <span>Log</span>
-    </div>
+  <!-- SIDEBAR -->
+  <?php include "sidebar_admin.html"; ?>
 
-    <nav>
-      <a href="dashboard_admin.html"><span>🏠</span> Dashboard</a>
-      <a href="alterar_recebiveis.html"><span>💰</span> Alterar Recebíveis</a>
-      <a href="alterar_emprestimos.html"><span>📝</span> Alterar Empréstimos</a>
-      <a href="criar_colaborador.html"><span>👤</span> Criar Colaborador</a>
-      <a href="lancar_recebiveis.html"><span>➕</span> Lançar Recebível</a>
-      <a href="todos_emprestimos.html"><span>📊</span> Todos Empréstimos</a>
-    </nav>
-  </aside>
-
-  <!-- ÁREA PRINCIPAL -->
-  <div class="main">
-
-    <!-- TOPO -->
-    <header class="topbar">
-      <div class="topbar-logo">
-        <img src="/img/logo.png" alt="Coelho">
-        <span>Log</span>
-      </div>
+  <!-- TOPBAR -->
+  <div class="topbar">
+      <img src="/img/logo.png" alt="CoelhoLog">
       <button class="logout-btn" onclick="logout()">Logout</button>
-    </header>
-
-    <!-- CONTEÚDO -->
-    <main class="content">
-      <h1>Painel Administrativo</h1>
-
-      <!-- CARDS -->
-      <section class="cards">
-        <div class="card">
-          <small>Recebíveis Pendentes</small>
-          <div class="value" id="recPendentes">R$ 0,00</div>
-        </div>
-        <div class="card">
-          <small>Recebíveis Pagos</small>
-          <div class="value" id="recPagos">R$ 0,00</div>
-        </div>
-        <div class="card">
-          <small>Empréstimos Pendentes</small>
-          <div class="value" id="empPendentes">0</div>
-        </div>
-        <div class="card">
-          <small>Empréstimos Aprovados</small>
-          <div class="value" id="empAprovados">0</div>
-        </div>
-      </section>
-
-      <!-- TABELA -->
-      <section class="box">
-        <h2>Últimos Recebíveis</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Usuário</th>
-              <th>Valor</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="listaRecebiveis">
-            <!-- preenchido via JS -->
-          </tbody>
-        </table>
-      </section>
-    </main>
   </div>
 
-  <script>
-    // ---- LOGIN / PERMISSÃO (mantém se já estiver usando 'user' no localStorage) ----
-    try {
-      const uStr = localStorage.getItem("user");
-      if (!uStr) {
-        // se não estiver logado, volta pro login
-        // window.location.href = "/";
-      }
-    } catch (e) {
-      console.warn("Não foi possível ler usuário logado:", e);
+  <!-- CONTEÚDO -->
+  <div class="content">
+      <h2>Painel Administrativo</h2>
+
+      <div class="cards">
+          <div class="card">
+              <small>Recebíveis Pendentes</small>
+              <h3 id="pendentes">R$ 0,00</h3>
+          </div>
+          <div class="card">
+              <small>Recebíveis Pagos</small>
+              <h3 id="pagos">R$ 0,00</h3>
+          </div>
+          <div class="card">
+              <small>Empréstimos Pendentes</small>
+              <h3 id="empPendentes">0</h3>
+          </div>
+          <div class="card">
+              <small>Empréstimos Aprovados</small>
+              <h3 id="empAprovados">0</h3>
+          </div>
+      </div>
+
+      <div class="table-box">
+          <h3>Últimos Recebíveis</h3>
+          <table>
+              <thead>
+                  <tr>
+                      <th>ID</th>
+                      <th>Usuário</th>
+                      <th>Valor</th>
+                      <th>Status</th>
+                  </tr>
+              </thead>
+              <tbody id="listaRecebiveis"></tbody>
+          </table>
+      </div>
+  </div>
+
+<script>
+/* PROTEÇÃO ADMIN */
+(function(){
+    const u = JSON.parse(localStorage.getItem("user"));
+    if(!u || u.role !== "admin"){
+        window.location.href="../index.html";
     }
+})();
 
-    function logout() {
-      localStorage.removeItem("user");
-      window.location.href = "/";
-    }
+/* LOGOUT */
+function logout(){
+    localStorage.clear();
+    window.location.href="../index.html";
+}
 
-    // ---- FUNÇÕES AUXILIARES ----
-    function toNumber(valor) {
-      if (valor == null) return 0;
-      return parseFloat(String(valor).replace(".", "").replace(",", "."));
-    }
+/* DASHBOARD */
+async function carregarDashboard(){
+  const r1 = await fetch("/api/recebiveis");
+  const rec = await r1.json();
 
-    function formatMoney(num) {
-      return num.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
+  let pend = 0, pagos = 0;
 
-    // ---- CARREGAR DADOS DAS APIS ----
-    async function carregarDashboard() {
-      try {
-        // RECEBÍVEIS
-        const recRes = await fetch("/api/recebiveis");
-        const recebiveis = await recRes.json();
+  rec.forEach(r=>{
+    if(r.status==="Pendente") pend += parseFloat(r.valor);
+    if(r.status==="Pago") pagos += parseFloat(r.valor);
+  });
 
-        let totalPend = 0;
-        let totalPago = 0;
+  document.getElementById("pendentes").textContent = "R$ "+ pend.toLocaleString("pt-BR",{minimumFractionDigits:2});
+  document.getElementById("pagos").textContent = "R$ "+ pagos.toLocaleString("pt-BR",{minimumFractionDigits:2});
 
-        recebiveis.forEach(r => {
-          const v = toNumber(r.valor);
-          if (r.status === "Pendente") totalPend += v;
-          if (r.status === "Pago") totalPago += v;
-        });
+  const tbody = document.getElementById("listaRecebiveis");
+  tbody.innerHTML="";
 
-        document.getElementById("recPendentes").textContent = "R$ " + formatMoney(totalPend);
-        document.getElementById("recPagos").textContent = "R$ " + formatMoney(totalPago);
+  rec.slice(0,5).forEach(r=>{
+    tbody.innerHTML += `
+      <tr>
+        <td>${r.id}</td>
+        <td>${r.nome}</td>
+        <td>R$ ${parseFloat(r.valor).toLocaleString("pt-BR",{minimumFractionDigits:2})}</td>
+        <td>${r.status}</td>
+      </tr>
+    `;
+  });
 
-        // Tabela últimos 5
-        const tbody = document.getElementById("listaRecebiveis");
-        tbody.innerHTML = "";
-        recebiveis.slice(0, 5).forEach(r => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${r.id}</td>
-            <td>${r.nome}</td>
-            <td>R$ ${formatMoney(toNumber(r.valor))}</td>
-            <td>${r.status}</td>
-          `;
-          tbody.appendChild(tr);
-        });
+  const r2 = await fetch("/api/emprestimos");
+  const emp = await r2.json();
 
-        // EMPRÉSTIMOS
-        const empRes = await fetch("/api/emprestimos");
-        const emprestimos = await empRes.json();
+  document.getElementById("empPendentes").textContent = emp.filter(e=>e.status==="Pendente").length;
+  document.getElementById("empAprovados").textContent = emp.filter(e=>e.status==="Aprovado").length;
+}
 
-        const pend = emprestimos.filter(e => e.status === "Em análise" || e.status === "Pendente").length;
-        const aprov = emprestimos.filter(e => e.status === "Aprovado").length;
+carregarDashboard();
+</script>
 
-        document.getElementById("empPendentes").textContent = pend;
-        document.getElementById("empAprovados").textContent = aprov;
-
-      } catch (err) {
-        console.error("Erro ao carregar dashboard:", err);
-      }
-    }
-
-    carregarDashboard();
-  </script>
 </body>
 </html>
