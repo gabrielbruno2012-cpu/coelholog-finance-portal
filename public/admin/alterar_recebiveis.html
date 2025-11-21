@@ -1,249 +1,182 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Alterar Recebíveis - CoelhoLog</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alterar Recebíveis - CoelhoLog</title>
+    <link rel="stylesheet" href="/admin/style_admin.css">
 
-<style>
-  :root {
-    --azul-topbar: #062243;
-    --azul-sidebar: #04152b;
-    --amarelo: #ffc81a;
-    --cinza-fundo: #f5f7fb;
-  }
+    <style>
+        .form-container {
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            width: 520px;
+            margin: 40px auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+        label {
+            font-weight: 600;
+            margin-top: 12px;
+            display: block;
+        }
 
-  body {
-    font-family: Arial, sans-serif;
-    background: var(--cinza-fundo);
-    color: #0b2145;
-  }
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #dcdcdc;
+            margin-top: 5px;
+        }
 
-  /* TOPBAR */
-  .topbar {
-    position: sticky;
-    top: 0;
-    height: 64px;
-    background: var(--azul-topbar);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 32px;
-    z-index: 1000;
-  }
+        .btn-salvar {
+            background: #062d57;
+            color: #fff;
+            padding: 14px;
+            margin-top: 18px;
+            width: 100%;
+            font-size: 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
 
-  .topbar-logo {
-    height: 38px;
-  }
-
-  .btn-logout {
-    background: var(--amarelo);
-    border: none;
-    padding: 8px 20px;
-    border-radius: 20px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-
-  /* LAYOUT */
-  .layout {
-    display: flex;
-    min-height: calc(100vh - 64px);
-  }
-
-  /* SIDEBAR */
-  .sidebar {
-    width: 230px;
-    background: var(--azul-sidebar);
-    padding: 24px 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    color: white;
-  }
-
-  .nav-link {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px;
-    font-size: 15px;
-    color: #dbe4ff;
-    text-decoration: none;
-    border-radius: 8px;
-    transition: 0.2s;
-  }
-
-  .nav-link:hover {
-    background: rgba(255,255,255,0.12);
-    color: #fff;
-  }
-
-  .icon {
-    font-size: 18px;
-  }
-
-  .main-content {
-    flex: 1;
-    padding: 32px;
-  }
-
-  h1 {
-    margin-bottom: 16px;
-    font-size: 24px;
-    font-weight: 600;
-  }
-
-  /* FORMULARIO */
-  .box {
-    background: white;
-    padding: 24px;
-    border-radius: 12px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-    max-width: 600px;
-  }
-
-  label {
-    font-weight: bold;
-    margin-top: 14px;
-    display: block;
-  }
-
-  input, select {
-    width: 100%;
-    padding: 12px;
-    margin-top: 6px;
-    border-radius: 8px;
-    border: 1px solid #c7cdda;
-    font-size: 15px;
-  }
-
-  button {
-    margin-top: 22px;
-    background: var(--azul-topbar);
-    color: white;
-    padding: 12px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: bold;
-    width: 100%;
-  }
-
-  button:hover {
-    background: #071d38;
-  }
-
-</style>
+        .btn-salvar:hover {
+            opacity: .85;
+        }
+    </style>
 </head>
+
 <body>
 
-<!-- TOPBAR -->
-<header class="topbar">
-  <img src="/img/logo.png" class="topbar-logo">
-  <button class="btn-logout" onclick="logout()">Logout</button>
-</header>
+    <!-- SIDEBAR -->
+    <div id="sidebar"></div>
 
-<div class="layout">
+    <!-- TOPO -->
+    <header class="topbar">
+        <img src="/img/logo.png" class="logo-topbar">
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </header>
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <a class="nav-link" href="/admin/dashboard_admin.html"><span class="icon">📊</span>Dashboard</a>
-    <a class="nav-link" href="/admin/alterar_recebiveis.html"><span class="icon">✏️</span>Alterar Recebíveis</a>
-    <a class="nav-link" href="/admin/alterar_emprestimos.html"><span class="icon">💳</span>Alterar Empréstimos</a>
-    <a class="nav-link" href="/admin/criar_colaborador.html"><span class="icon">👤</span>Criar Colaborador</a>
-    <a class="nav-link" href="/admin/lancar_recebiveis.html"><span class="icon">➕</span>Lançar Recebível</a>
-    <a class="nav-link" href="/admin/todos_emprestimos.html"><span class="icon">📚</span>Todos Empréstimos</a>
-  </aside>
+    <!-- CONTEÚDO -->
+    <main class="content">
+        <h2>Alterar Recebíveis</h2>
 
-  <!-- CONTEÚDO -->
-  <main class="main-content">
-    <h1>Alterar Recebíveis</h1>
+        <div class="form-container">
+            
+            <label>Colaborador</label>
+            <select id="usuario_id"></select>
 
-    <div class="box">
+            <label>Nome</label>
+            <input type="text" id="nome">
 
-      <label>ID</label>
-      <input id="id" readonly>
+            <label>Valor</label>
+            <input type="number" id="valor" step="0.01">
 
-      <label>Nome</label>
-      <input id="nome" readonly>
+            <label>Data</label>
+            <input type="date" id="data">
 
-      <label>Valor</label>
-      <input id="valor" type="number">
+            <label>Status</label>
+            <select id="status">
+                <option value="Pendente">Pendente</option>
+                <option value="Pago">Pago</option>
+            </select>
 
-      <label>Data</label>
-      <input id="data" type="date">
-
-      <label>Status</label>
-      <select id="status">
-        <option value="Pendente">Pendente</option>
-        <option value="Pago">Pago</option>
-      </select>
-
-      <button onclick="salvar()">Salvar Alterações</button>
-    </div>
-  </main>
-
-</div>
+            <button class="btn-salvar" onclick="salvar()">Salvar Alterações</button>
+        </div>
+    </main>
 
 <script>
-/* PROTEÇÃO */
+/* ==============================
+   🔒 PROTEÇÃO DE ACESSO 
+=================================*/
 const uStr = localStorage.getItem("usuario");
 let u = null;
-try{ u = uStr ? JSON.parse(uStr) : null; }catch(e){ u = null; }
+try { u = uStr ? JSON.parse(uStr) : null; } catch(e){ u = null; }
 
-if(!u){
-  window.location.href="/";
-}else if(u.role!=="financeiro" && u.role!=="admin"){
-  window.location.href="/colaborador/dashboard.html";
+if (!u) {
+  window.location.href = "/";
+} else if (u.role !== "financeiro" && u.role !== "admin") {
+  window.location.href = "/colaborador/dashboard.html";
 }
 
-/* LOGOUT */
-function logout(){
-  localStorage.clear();
-  window.location.href="/";
-}
 
-/* CARREGAR DADOS NA PÁGINA */
+/* ==============================
+   📌 CARREGAR SIDEBAR
+=================================*/
+fetch("/admin/sidebar_admin.html").then(r => r.text()).then(html => {
+    document.getElementById("sidebar").innerHTML = html;
+});
+
+
+/* ==============================
+   📌 BUSCAR RECEBÍVEL PARA EDITAR
+=================================*/
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
-async function carregar(){
-  const r = await fetch("/api/recebiveis/" + id);
-  const dados = await r.json();
+async function carregarRecebivel() {
+    const resp = await fetch(`/api/recebiveis/${id}`);
+    const r = await resp.json();
 
-  document.getElementById("id").value = dados.id;
-  document.getElementById("nome").value = dados.nome;
-  document.getElementById("valor").value = dados.valor;
-
-  if(dados.data){
-    document.getElementById("data").value = dados.data.split(" ")[0];
-  }
-
-  document.getElementById("status").value = dados.status;
+    document.getElementById("nome").value = r.nome;
+    document.getElementById("valor").value = r.valor;
+    document.getElementById("data").value = r.data;
+    document.getElementById("status").value = r.status;
+    document.getElementById("usuario_id").value = r.usuario_id;
 }
 
-/* SALVAR */
-async function salvar(){
-  const body = {
-    valor: document.getElementById("valor").value,
-    data: document.getElementById("data").value,
-    status: document.getElementById("status").value
-  };
 
-  await fetch("/api/recebiveis/" + id, {
-    method:"PUT",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify(body)
-  });
+/* ==============================
+   📌 CARREGAR LISTA DE COLABORADORES
+=================================*/
+async function carregarUsuarios() {
+    const resp = await fetch("/api/usuarios");
+    const lista = await resp.json();
 
-  alert("Recebível atualizado com sucesso!");
+    let sel = document.getElementById("usuario_id");
+
+    lista.forEach(u => {
+        if (u.role === "colaborador") {
+            let opt = document.createElement("option");
+            opt.value = u.id;
+            opt.textContent = u.nome;
+            sel.appendChild(opt);
+        }
+    });
+
+    carregarRecebivel();
 }
 
-carregar();
+
+/* ==============================
+   💾 SALVAR ALTERAÇÕES
+=================================*/
+async function salvar() {
+    const dados = {
+        usuario_id: document.getElementById("usuario_id").value,
+        nome: document.getElementById("nome").value,
+        valor: document.getElementById("valor").value,
+        data: document.getElementById("data").value,
+        status: document.getElementById("status").value
+    };
+
+    const resp = await fetch(`/api/recebiveis/${id}`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(dados)
+    });
+
+    if (resp.ok) {
+        alert("Alterado com sucesso!");
+        window.location.href = "/admin/dashboard_admin.html";
+    } else {
+        alert("Erro ao salvar");
+    }
+}
+
+carregarUsuarios();
 </script>
 
 </body>
