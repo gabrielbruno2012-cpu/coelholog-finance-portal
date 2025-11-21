@@ -206,37 +206,60 @@ if (!u) {
 }
 
 
-        // CARREGAR DADOS DO DASHBOARD
-        async function carregarDashboard() {
-            const resp = await fetch("/api/recebiveis");
-            const dados = await resp.json();
+        // ----------------------------
+    // DASHBOARD RECEBÍVEIS
+    // ----------------------------
+    async function carregarRecebiveis() {
+        const resp = await fetch("/api/recebiveis");
+        const dados = await resp.json();
 
-            let pendentes = 0;
-            let pagos = 0;
+        let pendentes = 0;
+        let pagos = 0;
 
-            const tabela = document.getElementById("tabelaRecebiveis");
-            tabela.innerHTML = "";
+        const tabela = document.getElementById("tabelaRecebiveis");
+        tabela.innerHTML = "";
 
-            dados.forEach(r => {
-                if (r.status === "Pendente") pendentes += parseFloat(r.valor);
-                if (r.status === "Pago") pagos += parseFloat(r.valor);
+        dados.forEach(r => {
+            if (r.status === "Pendente") pendentes += parseFloat(r.valor);
+            if (r.status === "Pago") pagos += parseFloat(r.valor);
 
-                tabela.innerHTML += `
-                    <tr>
-                        <td>${r.id}</td>
-                        <td>${r.nome}</td>
-                        <td>R$ ${parseFloat(r.valor).toFixed(2)}</td>
-                        <td>${r.status}</td>
-                    </tr>
-                `;
-            });
+            tabela.innerHTML += `
+                <tr>
+                    <td>${r.id}</td>
+                    <td>${r.nome}</td>
+                    <td>R$ ${parseFloat(r.valor).toFixed(2)}</td>
+                    <td>${r.status}</td>
+                </tr>`;
+        });
 
-            document.getElementById("pendentes").innerText = `R$ ${pendentes.toFixed(2)}`;
-            document.getElementById("pagos").innerText = `R$ ${pagos.toFixed(2)}`;
-        }
+        document.getElementById("pendentes").innerText = `R$ ${pendentes.toFixed(2)}`;
+        document.getElementById("pagos").innerText = `R$ ${pagos.toFixed(2)}`;
+    }
 
-        carregarDashboard();
-    </script>
+    // ----------------------------
+    // DASHBOARD EMPRÉSTIMOS
+    // ----------------------------
+    async function carregarEmprestimos() {
+        const resp = await fetch("/api/emprestimos");
+        const dados = await resp.json();
+
+        let pendentes = 0;
+        let aprovados = 0;
+
+        dados.forEach(e => {
+            if (e.status === "Pendente") pendentes++;
+            if (e.status === "Aprovado") aprovados++;
+        });
+
+        document.getElementById("emprestimos_pendentes").innerText = pendentes;
+        document.getElementById("emprestimos_aprovados").innerText = aprovados;
+    }
+
+    // Carregar tudo
+    carregarRecebiveis();
+    carregarEmprestimos();
+
+</script>
 
 </body>
 </html>
