@@ -1,8 +1,10 @@
-<html>
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
+  <meta charset="UTF-8">
   <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
+<body style="background:#04254d;">
 
 <!-- 🔐 Proteção -->
 <script>
@@ -15,17 +17,27 @@ if (!u || (u.role !== "financeiro" && u.role !== "admin")) {
 }
 </script>
 
+<!-- 🔵 SIDEBAR -->
 <div id="sidebar"></div>
 
-<div class="main">
+<!-- 🔵 MAIN -->
+<div class="main" style="margin-left:240px; padding:20px;">
 
-  <div class="header-right">
-    <button class="btn" onclick="localStorage.clear(); location='/'">Logout</button>
+  <!-- 🔵 TOPBAR -->
+  <div style="width:100%; padding:15px 20px; background:#002147; display:flex; justify-content:space-between; align-items:center; border-radius:8px; margin-bottom:25px;">
+      <img src="/img/logo.png" style="height:42px;">
+      <button class="btn" onclick="localStorage.clear(); location='/'" style="background:#ffcc00; color:#000;">Logout</button>
   </div>
 
-  <h1>Criar Colaborador</h1>
+  <h1 style="color:white;">Criar Colaborador</h1>
 
-  <div class="card" style="margin-top:20px; padding:20px;">
+  <div class="card" style="
+      margin-top:20px; 
+      padding:25px; 
+      background:white; 
+      border-radius:12px; 
+      max-width:580px;
+    ">
 
       <div class="form-group">
         <label>Nome*</label>
@@ -60,20 +72,23 @@ if (!u || (u.role !== "financeiro" && u.role !== "admin")) {
         </select>
       </div>
 
-      <button class="btn" onclick="criar()" style="margin-top:15px;">Criar</button>
+      <button class="btn" onclick="criar()" 
+        style="margin-top:15px; background:#002147;">
+        Criar
+      </button>
 
       <p id="msg" style="margin-top:15px; font-weight:bold;"></p>
 
   </div>
 </div>
 
+<!-- SIDEBAR LOAD -->
 <script>
-// Carregar o menu lateral
 fetch("/admin/sidebar_admin.html")
   .then(r => r.text())
   .then(h => sidebar.innerHTML = h);
 
-// Função de criar colaborador
+// Função de criar colaborador (SEM ALTERAÇÕES)
 async function criar() {
   let nome = document.getElementById("nome").value.trim();
   let email = document.getElementById("email").value.trim();
@@ -100,12 +115,12 @@ async function criar() {
     msg.innerText = "Colaborador criado com sucesso!";
     msg.style.color = "lightgreen";
 
-    // Limpar inputs
-    nome.value = "";
-    email.value = "";
-    senha.value = "";
-    telefone.value = "";
-    cnpj.value = "";
+    // Limpa inputs corretamente
+    document.getElementById("nome").value = "";
+    document.getElementById("email").value = "";
+    document.getElementById("senha").value = "";
+    document.getElementById("telefone").value = "";
+    document.getElementById("cnpj").value = "";
 
   } else {
     msg.innerText = "Erro ao criar colaborador!";
@@ -117,11 +132,17 @@ async function criar() {
 <style>
 .form-group {
   margin-bottom: 15px;
-  color: white;
 }
 .form-group label {
   display: block;
   margin-bottom: 5px;
+  font-weight: bold;
+}
+.input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
 }
 </style>
 
