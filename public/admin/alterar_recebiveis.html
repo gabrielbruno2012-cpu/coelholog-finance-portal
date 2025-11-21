@@ -1,11 +1,100 @@
 <html>
 <head>
     <link rel="stylesheet" href="/css/style.css">
+
+<style>
+    body {
+        margin: 0;
+        background: #062045;
+        font-family: "Inter", sans-serif;
+        color: white;
+    }
+
+    /* TOPBAR */
+    .topbar {
+        background: #062045;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 3px solid #0a2c5d;
+    }
+
+    .topbar img {
+        height: 42px;
+    }
+
+    .logout-btn {
+        background: #ffcc00;
+        border: none;
+        padding: 10px 22px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    /* MAIN */
+    .main {
+        margin-left: 250px;
+        padding: 40px;
+    }
+
+    h1 {
+        font-size: 26px;
+        color: white;
+        margin-bottom: 25px;
+    }
+
+    /* TABLE */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        color: #062045;
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    th {
+        padding: 12px;
+        background: #062045;
+        color: white;
+        font-weight: 600;
+        text-align: left;
+    }
+
+    td {
+        padding: 12px;
+        background: #f5f7fc;
+        color: #002855;
+        font-weight: 600;
+    }
+
+    .input {
+        width: 140px;
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid #8aa4d4;
+        color: #062045;
+        font-weight: 600;
+    }
+
+    .btn-save {
+        background: #062045;
+        color: white;
+        padding: 8px 14px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+    }
+</style>
 </head>
+
 <body>
 
 <script>
-// Proteção correta
+// 🔒 PROTEÇÃO
 const uStr = localStorage.getItem("usuario");
 let u = null;
 try { u = uStr ? JSON.parse(uStr) : null; } catch(e){ u = null; }
@@ -17,18 +106,20 @@ if (!u) {
 }
 </script>
 
+<!-- TOPBAR -->
+<div class="topbar">
+    <img src="/img/logo.png">
+    <button class="logout-btn" onclick="localStorage.clear();location='/'">Logout</button>
+</div>
+
+<!-- SIDEBAR -->
 <div id="sidebar"></div>
 
+<!-- CONTEÚDO -->
 <div class="main">
-
-    <div class="header-right">
-        <img src="/img/logo.png" class="toplogo">
-        <button class="btn" onclick="localStorage.clear();location='/'">Logout</button>
-    </div>
-
     <h1>Alterar Recebíveis</h1>
 
-    <table class="table" id="lista"></table>
+    <table id="lista"></table>
 </div>
 
 <script>
@@ -37,13 +128,12 @@ fetch('/admin/sidebar_admin.html')
     .then(r => r.text())
     .then(h => sidebar.innerHTML = h);
 
-// Formatador
-function fmtValor(n) {
-    return Number(n || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
-}
-
+/* 📌 LISTAR APENAS PENDENTES */
 async function load() {
     let dados = await fetch('/api/recebiveis').then(r => r.json());
+
+    // APENAS RECEBÍVEIS PENDENTES
+    dados = dados.filter(r => r.status === "Pendente");
 
     let html = `
         <tr>
@@ -60,7 +150,6 @@ async function load() {
     dados.forEach(e => {
         html += `
             <tr id="row${e.id}">
-
                 <td>${e.id}</td>
 
                 <td style="color:#409cff; font-weight:600">
@@ -81,13 +170,13 @@ async function load() {
 
                 <td>
                     <select class="input" id="st${e.id}">
-                        <option ${e.status=="Pendente"?"selected":""}>Pendente</option>
-                        <option ${e.status=="Pago"?"selected":""}>Pago</option>
+                        <option value="Pendente" ${e.status=="Pendente"?"selected":""}>Pendente</option>
+                        <option value="Pago">Pago</option>
                     </select>
                 </td>
 
                 <td>
-                    <button class="btn" onclick="save(${e.id})">Salvar</button>
+                    <button class="btn-save" onclick="save(${e.id})">Salvar</button>
                 </td>
             </tr>
         `;
@@ -96,36 +185,31 @@ async function load() {
     lista.innerHTML = html;
 }
 
+/* 📌 SALVAR E REMOVER DA TABELA QUANDO PAGO */
 async function save(id) {
 
-    let data = document.getElementById("dt"+id).value;
+    let data  = document.getElementById("dt"+id).value;
     let valor = document.getElementById("vl"+id).value;
-    let tipo = document.getElementById("tp"+id).value;
+    let tipo  = document.getElementById("tp"+id).value;
     let status = document.getElementById("st"+id).value;
 
-    const res = await fetch("/api/recebiveis/" + id, {
+    await fetch("/api/recebiveis/" + id, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ data, valor, tipo, status })
     });
 
-    if (!res.ok) {
-        alert("Erro ao atualizar!");
+    // Se virar PAGO → some da lista
+    if(status === "Pago"){
+        document.getElementById("row"+id).remove();
         return;
     }
 
-    alert("Recebível atualizado com sucesso!");
+    alert("Recebível atualizado!");
 }
 
 load();
 </script>
-
-<style>
-.toplogo {
-    height: 38px;
-    margin-right: 20px;
-}
-</style>
 
 </body>
 </html>
