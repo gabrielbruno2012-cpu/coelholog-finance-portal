@@ -2,182 +2,250 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <title>Painel Administrativo - CoelhoLog</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo</title>
 
     <style>
+        :root {
+            --azul-escuro: #062447;
+            --azul-topbar: #002145;
+            --amarelo: #FFC400;
+            --cinza-fundo: #eef2f7;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             font-family: Arial, sans-serif;
-            background: #eef2f7;
+            background-color: var(--cinza-fundo);
+            color: #001B38;
         }
 
-        /* TOPBAR AZUL */
+        /* TOPBAR */
         .topbar {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 70px;
-            background-color: #002145;
-            z-index: 1000;
+            background-color: var(--azul-topbar);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 25px;
-            box-sizing: border-box;
+            padding: 0 24px;
+            z-index: 1000;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         }
 
-        .topbar img {
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .topbar-logo {
             height: 40px;
         }
 
         .logout-btn {
-            background-color: #FFC400;
+            background-color: var(--amarelo);
             border: none;
-            padding: 10px 20px;
+            padding: 9px 20px;
             border-radius: 6px;
-            cursor: pointer;
             font-weight: bold;
+            cursor: pointer;
+        }
+
+        .logout-btn:hover {
+            filter: brightness(0.95);
         }
 
         /* SIDEBAR */
         .sidebar {
             position: fixed;
-            top: 70px; /* abaixo do topbar */
+            top: 70px; /* abaixo da topbar */
             left: 0;
             width: 230px;
-            height: calc(100% - 70px);
-            background-color: #062446;
-            color: white;
+            height: calc(100vh - 70px);
+            background-color: var(--azul-escuro);
+            color: #fff;
             padding-top: 20px;
-            box-sizing: border-box;
             z-index: 500;
         }
 
         .sidebar a {
-            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
             text-decoration: none;
-            display: block;
-            padding: 14px 20px;
+            padding: 12px 20px;
             font-size: 15px;
-            transition: 0.2s;
+            transition: background 0.2s;
         }
 
         .sidebar a:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background-color: rgba(255,255,255,0.12);
         }
 
-        /* CONTEÚDO */
+        .sidebar-icon {
+            width: 22px;
+            text-align: center;
+        }
+
+        /* CONTEÚDO PRINCIPAL */
         .main-content {
+            margin-top: 80px;   /* altura topbar */
             margin-left: 230px; /* largura sidebar */
-            margin-top: 90px; /* altura topbar */
-            padding: 20px;
+            padding: 24px;
         }
 
-        .cards {
+        h1 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+
+        /* CARDS */
+        .cards-row {
             display: flex;
-            gap: 20px;
+            gap: 18px;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
 
         .card {
             flex: 1;
-            padding: 25px;
-            background: #002145;
+            min-width: 220px;
+            background-color: var(--azul-escuro);
+            color: #fff;
             border-radius: 10px;
-            color: white;
+            padding: 18px 22px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
         }
 
-        .card h4 {
-            margin: 0;
-            font-size: 14px;
+        .card-title {
+            font-size: 13px;
             opacity: 0.8;
+            margin-bottom: 8px;
         }
 
-        .card p {
+        .card-value {
             font-size: 22px;
             font-weight: bold;
-            margin-top: 5px;
         }
 
-        /* TABELA */
-        .table-box {
-            margin-top: 30px;
-            background: white;
-            padding: 25px;
+        /* BOX TABELA */
+        .box {
+            margin-top: 28px;
+            background-color: #fff;
             border-radius: 10px;
+            padding: 22px 24px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+
+        .box h2 {
+            margin: 0 0 12px 0;
+            font-size: 18px;
+            color: #001B38;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
+        }
+
+        thead {
+            background-color: #e9edf3;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
         }
 
         th {
-            background: #e9edf3;
-            padding: 12px;
-            text-align: left;
-            color: #002145;
+            font-size: 14px;
+            color: var(--azul-escuro);
         }
 
         td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-            color: #002145;
+            font-size: 14px;
+            color: var(--azul-escuro);
+            border-bottom: 1px solid #f0f2f6;
         }
     </style>
 </head>
-
 <body>
 
     <!-- TOPBAR -->
-    <div class="topbar">
-        <img src="/img/logo.png" alt="CoelhoLog">
-        <button class="logout-btn" onclick="logout()">Logout</button>
-    </div>
+    <header class="topbar">
+        <div class="topbar-left">
+            <img src="/img/logo.png" alt="CoelhoLog" class="topbar-logo">
+        </div>
+        <button class="logout-btn" onclick="fazerLogout()">Logout</button>
+    </header>
 
     <!-- SIDEBAR -->
-    <div class="sidebar">
-        <a href="dashboard_admin.html">📊 Dashboard</a>
-        <a href="alterar_recebiveis.html">📝 Alterar Recebíveis</a>
-        <a href="alterar_emprestimos.html">💼 Alterar Empréstimos</a>
-        <a href="criar_colaborador.html">👤 Criar Colaborador</a>
-        <a href="lancar_recebiveis.html">➕ Lançar Recebível</a>
-        <a href="todos_emprestimos.html">📚 Todos Empréstimos</a>
-    </div>
+    <nav class="sidebar">
+        <a href="dashboard_admin.html">
+            <span class="sidebar-icon">📊</span>
+            <span>Dashboard</span>
+        </a>
+        <a href="alterar_recebiveis.html">
+            <span class="sidebar-icon">💰</span>
+            <span>Alterar Recebíveis</span>
+        </a>
+        <a href="alterar_emprestimos.html">
+            <span class="sidebar-icon">💸</span>
+            <span>Alterar Empréstimos</span>
+        </a>
+        <a href="criar_colaborador.html">
+            <span class="sidebar-icon">👤</span>
+            <span>Criar Colaborador</span>
+        </a>
+        <a href="lancar_recebiveis.html">
+            <span class="sidebar-icon">➕</span>
+            <span>Lançar Recebível</span>
+        </a>
+        <a href="todos_emprestimos.html">
+            <span class="sidebar-icon">📋</span>
+            <span>Todos Empréstimos</span>
+        </a>
+    </nav>
 
     <!-- CONTEÚDO -->
-    <div class="main-content">
+    <main class="main-content">
+        <h1>Painel Administrativo</h1>
 
-        <h2>Painel Administrativo</h2>
-
-        <div class="cards">
+        <!-- CARDS -->
+        <section class="cards-row">
             <div class="card">
-                <h4>Recebíveis Pendentes</h4>
-                <p id="pendentes">R$ 0,00</p>
+                <div class="card-title">Recebíveis Pendentes</div>
+                <div class="card-value" id="cardRecebiveisPendentes">R$ 0,00</div>
             </div>
 
             <div class="card">
-                <h4>Recebíveis Pagos</h4>
-                <p id="pagos">R$ 0,00</p>
+                <div class="card-title">Recebíveis Pagos</div>
+                <div class="card-value" id="cardRecebiveisPagos">R$ 0,00</div>
             </div>
 
             <div class="card">
-                <h4>Empréstimos Pendentes</h4>
-                <p id="emprestimos_pendentes">0</p>
+                <div class="card-title">Empréstimos Pendentes</div>
+                <div class="card-value" id="cardEmprestimosPendentes">0</div>
             </div>
 
             <div class="card">
-                <h4>Empréstimos Aprovados</h4>
-                <p id="emprestimos_aprovados">0</p>
+                <div class="card-title">Empréstimos Aprovados</div>
+                <div class="card-value" id="cardEmprestimosAprovados">0</div>
             </div>
-        </div>
+        </section>
 
-        <!-- Tabela -->
-        <div class="table-box">
-            <h3>Últimos Recebíveis</h3>
+        <!-- TABELA -->
+        <section class="box">
+            <h2>Últimos Recebíveis</h2>
 
             <table>
                 <thead>
@@ -188,78 +256,99 @@
                         <th>Status</th>
                     </tr>
                 </thead>
-                <tbody id="tabelaRecebiveis"></tbody>
+                <tbody id="tabelaUltimosRecebiveis">
+                    <!-- preenchido via JS -->
+                </tbody>
             </table>
-        </div>
-
-    </div>
+        </section>
+    </main>
 
     <script>
-       const uStr = localStorage.getItem("usuario");
-let u = null;
-try { u = uStr ? JSON.parse(uStr) : null; } catch(e){ u = null; }
+        /* ============================
+           PROTEÇÃO DE ROTA
+        ============================ */
+        const uStr = localStorage.getItem("usuario");
+        let u = null;
+        try {
+            u = uStr ? JSON.parse(uStr) : null;
+        } catch (e) {
+            u = null;
+        }
 
-if (!u) {
-  window.location.href = "/";
-} else if (u.role !== "financeiro" && u.role !== "admin") {
-  window.location.href = "/colaborador/dashboard.html";
-}
+        if (!u) {
+            window.location.href = "/";
+        } else if (u.role !== "financeiro" && u.role !== "admin") {
+            window.location.href = "/colaborador/dashboard.html";
+        }
 
+        function fazerLogout() {
+            localStorage.removeItem("usuario");
+            window.location.href = "/";
+        }
 
-        // ----------------------------
-    // DASHBOARD RECEBÍVEIS
-    // ----------------------------
-    async function carregarRecebiveis() {
-        const resp = await fetch("/api/recebiveis");
-        const dados = await resp.json();
-
-        let pendentes = 0;
-        let pagos = 0;
-
-        const tabela = document.getElementById("tabelaRecebiveis");
-        tabela.innerHTML = "";
-
-        dados.forEach(r => {
-            if (r.status === "Pendente") pendentes += parseFloat(r.valor);
-            if (r.status === "Pago") pagos += parseFloat(r.valor);
-
-            tabela.innerHTML += `
-                <tr>
-                    <td>${r.id}</td>
-                    <td>${r.nome}</td>
-                    <td>R$ ${parseFloat(r.valor).toFixed(2)}</td>
-                    <td>${r.status}</td>
-                </tr>`;
+        /* ============================
+           CARREGAR DADOS DO DASHBOARD
+        ============================ */
+        document.addEventListener("DOMContentLoaded", async () => {
+            await Promise.all([
+                carregarRecebiveis(),
+                carregarEmprestimos()
+            ]);
         });
 
-        document.getElementById("pendentes").innerText = `R$ ${pendentes.toFixed(2)}`;
-        document.getElementById("pagos").innerText = `R$ ${pagos.toFixed(2)}`;
-    }
+        async function carregarRecebiveis() {
+            try {
+                const resp = await fetch("/api/recebiveis");
+                const recebiveis = await resp.json();
 
-    // ----------------------------
-    // DASHBOARD EMPRÉSTIMOS
-    // ----------------------------
-    async function carregarEmprestimos() {
-        const resp = await fetch("/api/emprestimos");
-        const dados = await resp.json();
+                let totalPendentes = 0;
+                let totalPagos = 0;
 
-        let pendentes = 0;
-        let aprovados = 0;
+                const corpoTabela = document.getElementById("tabelaUltimosRecebiveis");
+                corpoTabela.innerHTML = "";
 
-        dados.forEach(e => {
-            if (e.status === "Pendente") pendentes++;
-            if (e.status === "Aprovado") aprovados++;
-        });
+                recebiveis.forEach(r => {
+                    const valorNum = parseFloat(r.valor || 0);
 
-        document.getElementById("emprestimos_pendentes").innerText = pendentes;
-        document.getElementById("emprestimos_aprovados").innerText = aprovados;
-    }
+                    if (r.status === "Pendente") totalPendentes += valorNum;
+                    if (r.status === "Pago") totalPagos += valorNum;
 
-    // Carregar tudo
-    carregarRecebiveis();
-    carregarEmprestimos();
+                    corpoTabela.innerHTML += `
+                        <tr>
+                            <td>${r.id}</td>
+                            <td>${r.nome}</td>
+                            <td>R$ ${valorNum.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</td>
+                            <td>${r.status}</td>
+                        </tr>
+                    `;
+                });
 
-</script>
+                document.getElementById("cardRecebiveisPendentes").textContent =
+                    "R$ " + totalPendentes.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
 
+                document.getElementById("cardRecebiveisPagos").textContent =
+                    "R$ " + totalPagos.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+
+            } catch (err) {
+                console.error("Erro ao carregar recebíveis:", err);
+            }
+        }
+
+        async function carregarEmprestimos() {
+            try {
+                const resp = await fetch("/api/emprestimos");
+                const emprestimos = await resp.json();
+
+                const pendentes = emprestimos.filter(e => e.status === "Pendente").length;
+                const aprovados = emprestimos.filter(e => e.status === "Pago").length;
+
+                document.getElementById("cardEmprestimosPendentes").textContent = pendentes;
+                document.getElementById("cardEmprestimosAprovados").textContent = aprovados;
+
+            } catch (err) {
+                console.error("Erro ao carregar empréstimos:", err);
+            }
+        }
+    </script>
 </body>
 </html>
