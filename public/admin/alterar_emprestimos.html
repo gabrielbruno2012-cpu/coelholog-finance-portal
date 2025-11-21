@@ -1,212 +1,169 @@
-<html>
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-    <link rel="stylesheet" href="/css/style.css">
+  <meta charset="UTF-8">
+  <title>Alterar Empréstimos</title>
+  <link rel="stylesheet" href="/css/style.css">
 
-<style>
-    body {
-        margin: 0;
-        background: #062045;
-        font-family: "Inter", sans-serif;
-        color: white;
-    }
+  <style>
+    body { margin:0; background:#0A2347; font-family:'Inter', sans-serif; }
 
     /* TOPBAR */
     .topbar {
-        background: #062045;
-        padding: 15px 30px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 3px solid #0a2c5d;
+      width:100%;
+      height:60px;
+      background:#072042;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 25px;
+      box-shadow:0 2px 4px rgba(0,0,0,0.2);
+      position:fixed;
+      top:0;
+      left:0;
+      z-index:10;
+    }
+    .topbar img { height:38px; }
+
+    .topbar button {
+      background:#FFCC00;
+      border:none;
+      padding:8px 18px;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:600;
     }
 
-    .topbar img {
-        height: 42px;
+    /* LAYOUT */
+    #sidebar { position:fixed; top:60px; left:0; width:200px; height:100%; }
+    .main { margin-left:200px; padding:90px 40px; color:white; }
+
+    .card {
+      background:white;
+      color:#000;
+      padding:20px;
+      border-radius:10px;
+      box-shadow:0 3px 10px rgba(0,0,0,0.2);
+      margin-top:20px;
     }
 
-    .logout-btn {
-        background: #ffcc00;
-        border: none;
-        padding: 10px 22px;
-        border-radius: 8px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-
-    /* MAIN */
-    .main {
-        margin-left: 250px;
-        padding: 40px;
-    }
-
-    h1 {
-        font-size: 26px;
-        color: white;
-        margin-bottom: 25px;
-    }
-
-    /* TABLE */
     table {
-        width: 100%;
-        border-collapse: collapse;
-        background: white;
-        color: #062045;
-        border-radius: 14px;
-        overflow: hidden;
+      width:100%;
+      border-collapse:collapse;
+      margin-top:10px;
     }
-
+    th, td {
+      padding:10px;
+      border-bottom:1px solid #ccc;
+    }
     th {
-        padding: 12px;
-        background: #062045;
-        color: white;
-        font-weight: 600;
-        text-align: left;
+      background:#0A2347;
+      color:white;
     }
 
-    td {
-        padding: 12px;
-        background: #f5f7fc;
-        color: #002855;
-        font-weight: 600;
-    }
-
-    .input {
-        width: 140px;
-        padding: 8px;
-        border-radius: 8px;
-        border: 1px solid #8aa4d4;
-        color: #062045;
-        font-weight: 600;
+    select, input {
+      width:100%;
+      padding:10px;
+      border-radius:6px;
+      border:1px solid #ccc;
+      margin-bottom:10px;
     }
 
     .btn-save {
-        background: #062045;
-        color: white;
-        padding: 8px 14px;
-        border-radius: 8px;
-        border: none;
-        cursor: pointer;
-        font-weight: 600;
+      background:#0A2347;
+      color:white;
+      padding:10px 14px;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:600;
     }
-</style>
+  </style>
 </head>
 
 <body>
 
+<!-- Segurança -->
 <script>
-// 🔒 PROTEÇÃO
 const uStr = localStorage.getItem("usuario");
-let u = null;
-try { u = uStr ? JSON.parse(uStr) : null; } catch(e){ u = null; }
-
-if (!u) {
-  window.location.href = "/";
-} else if (u.role !== "financeiro" && u.role !== "admin") {
-  window.location.href = "/colaborador/dashboard.html";
+let u=null;
+try{ u=uStr?JSON.parse(uStr):null;}catch(e){u=null;}
+if(!u){ location.href="/"; }
+else if(u.role!=="financeiro" && u.role!=="admin"){
+   location.href="/colaborador/dashboard.html";
 }
 </script>
 
 <!-- TOPBAR -->
 <div class="topbar">
-    <img src="/img/logo.png">
-    <button class="logout-btn" onclick="localStorage.clear();location='/'">Logout</button>
+  <img src="/img/logo.png">
+  <button onclick="localStorage.clear();location='/'">Logout</button>
 </div>
 
 <!-- SIDEBAR -->
 <div id="sidebar"></div>
 
-<!-- CONTEÚDO -->
 <div class="main">
-    <h1>Alterar Empréstimos</h1>
-
-    <table id="lista"></table>
+  <h1>Alterar Empréstimos</h1>
+  <div class="card">
+      <table id="tabela"></table>
+  </div>
 </div>
 
 <script>
-// Carregar sidebar
+// carregar sidebar
 fetch('/admin/sidebar_admin.html')
-    .then(r => r.text())
-    .then(html => sidebar.innerHTML = html);
+  .then(r=>r.text())
+  .then(h=> sidebar.innerHTML = h);
 
-/* 📌 LISTAR APENAS PENDENTES */
-async function load() {
-    let dados = await fetch('/api/emprestimos').then(r => r.json());
+// monetização
+function money(n){ return "R$ " + Number(n||0).toLocaleString("pt-BR",{minimumFractionDigits:2}); }
 
-    // APENAS EMPRÉSTIMOS PENDENTES
-    dados = dados.filter(r => r.status === "Pendente");
+async function load(){
+  const dados = await fetch('/api/emprestimos').then(r=>r.json());
 
-    let html = `
-        <tr>
-            <th>ID</th>
-            <th>Usuário</th>
-            <th>Valor</th>
-            <th>Data</th>
-            <th>Status</th>
-            <th>Ação</th>
-        </tr>
+  let html = `
+    <tr>
+      <th>ID</th>
+      <th>Colaborador</th>
+      <th>Valor</th>
+      <th>Parcelas</th>
+      <th>Status</th>
+      <th>Ação</th>
+    </tr>
+  `;
+
+  dados.forEach(e=>{
+    html += `
+      <tr>
+        <td>${e.id}</td>
+        <td>${e.nome}</td>
+        <td>${money(e.valor)}</td>
+        <td>${e.parcelamentos}</td>
+        <td>
+          <select id="st${e.id}">
+             <option value="Pendente" ${e.status=="Pendente"?"selected":""}>Pendente</option>
+             <option value="Pago" ${e.status=="Pago"?"selected":""}>Pago</option>
+          </select>
+        </td>
+        <td><button class="btn-save" onclick="salvar(${e.id})">Salvar</button></td>
+      </tr>
     `;
+  });
 
-    dados.forEach(e => {
-        html += `
-            <tr id="row${e.id}">
-                <td>${e.id}</td>
-
-                <td style="color:#409cff; font-weight:600">
-                    ${e.nome}
-                </td>
-
-                <td>
-                    <input type="number" step="0.01" class="input" id="vl${e.id}" value="${e.valor}">
-                </td>
-
-                <td>
-                    <input type="date" class="input" id="dt${e.id}" value="${e.data}">
-                </td>
-
-                <td>
-                    <select class="input" id="st${e.id}">
-                        <option value="Pendente" ${e.status=="Pendente"?"selected":""}>Pendente</option>
-                        <option value="Aprovado" ${e.status=="Aprovado"?"selected":""}>Aprovado</option>
-                        <option value="Pago">Pago</option>
-                    </select>
-                </td>
-
-                <td>
-                    <button class="btn-save" onclick="save(${e.id})">Salvar</button>
-                </td>
-            </tr>
-        `;
-    });
-
-    lista.innerHTML = html;
+  tabela.innerHTML = html;
 }
 
-/* 📌 SALVAR E REMOVER DA TABELA QUANDO FICAR PAGO */
-async function save(id) {
+async function salvar(id){
+  let status = document.getElementById("st"+id).value;
 
-    let valor = document.getElementById("vl"+id).value;
-    let data  = document.getElementById("dt"+id).value;
-    let status = document.getElementById("st"+id).value;
+  await fetch("/api/emprestimos/"+id,{
+    method:"PUT",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ status })
+  });
 
-    await fetch("/api/emprestimos/" + id, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ valor, data, status })
-    });
-
-    // Se virar PAGO → some da tela
-    if(status === "Pago"){
-        document.getElementById("row"+id).remove();
-        return;
-    }
-
-    // Se virar APROVADO → também deve sumir
-    if(status === "Aprovado"){
-        document.getElementById("row"+id).remove();
-        return;
-    }
-
-    alert("Empréstimo atualizado!");
+  await load();
 }
 
 load();
