@@ -167,15 +167,16 @@
     </div>
 
     <script>
-        // Proteção do painel admin
-        if (localStorage.getItem("role") !== "financeiro") {
-            window.location.href = "../index.html";
-        }
+        const uStr = localStorage.getItem("usuario");
+let u = null;
+try { u = uStr ? JSON.parse(uStr) : null; } catch(e){ u = null; }
 
-        function logout() {
-            localStorage.clear();
-            window.location.href = "../index.html";
-        }
+if (!u) {
+  window.location.href = "/";
+} else if (u.role !== "financeiro" && u.role !== "admin") {
+  window.location.href = "/colaborador/dashboard.html";
+}
+
 
         async function carregarDashboard() {
             const recebiveis = await fetch("/api/recebiveis").then(r => r.json());
