@@ -339,7 +339,7 @@
                 const resp = await fetch("/api/emprestimos");
                 const emprestimos = await resp.json();
 
-                const pendentes = emprestimos.filter(e => e.status === "Pendente").length;
+                const pendentes = emprestimos.filter(e => e.status === "Em análise").length;
                 const aprovados = emprestimos.filter(e => e.status === "Pago").length;
 
                 document.getElementById("cardEmprestimosPendentes").textContent = pendentes;
