@@ -1,89 +1,16 @@
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Painel Administrativo - CoelhoLog</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="/css/style.css">
 
 <style>
-    /* CARD PADRÃO */
-    .card-wrapper {
-        max-width: 900px;
-        background: #fff;
-        padding: 30px;
-        border-radius: 16px;
-        margin: 40px auto;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    h1 {
-        font-size: 26px;
-        font-weight: 700;
-        margin-bottom: 25px;
-        color: #0A2342;
-    }
-
-    .table th {
-        background: #0A2342;
-        color: white;
-        padding: 10px;
-        text-align: left;
-    }
-
-    .table td {
-        background: #f9f9f9;
-        padding: 10px;
-    }
-
-    .input {
-        width: 100%;
-        padding: 8px;
-        border-radius: 8px;
-        border: 1px solid #021835;
-    }
-
-    .btn-save {
-        background: #0A2342;
-        color: white;
-        padding: 8px 15px;
-        border-radius: 6px;
-        cursor: pointer;
-        border: none;
-    }
-
-    /* Topbar coerente com o restante */
-    .topbar {
-        width: 100%;
-        height: 60px;
-        background: #0A2342;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 25px;
-    }
-
-    .topbar img {
-        height: 42px;
-    }
-
-    .logout-btn {
-        background: #FFC400;
-        border: none;
-        padding: 7px 18px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 600;
-    }
-
-    .main {
-        margin-left: 260px;
-        padding: 20px;
-    }
+tbody td {
+    color: #002855 !important;
+    font-weight: 600;
+}
 </style>
-
 </head>
-<body>
 
+<body>
 <script>
 const uStr = localStorage.getItem("usuario");
 let u = null;
@@ -96,24 +23,14 @@ if (!u) {
 }
 </script>
 
-<!-- 🔵 TOPBAR AZUL COM LOGO -->
-<div class="topbar">
-    <img src="/img/logo.png">
-    <button class="logout-btn" onclick="logout()">Logout</button>
-</div>
 
-<!-- SIDEBAR -->
 <div id="sidebar"></div>
 
-<!-- CONTEÚDO -->
 <div class="main">
+ <div class="header-right"><button class="btn" onclick="logout()">Logout</button></div>
+ <h1>Alterar Recebíveis</h1>
 
-    <div class="card-wrapper">
-        <h1>Alterar Recebíveis</h1>
-
-        <table class="table" id="lista"></table>
-    </div>
-
+ <table class="table" id="lista"></table>
 </div>
 
 <script>
@@ -157,7 +74,7 @@ async function load(){
        </td>
 
        <td>
-         <button class="btn-save" onclick="save(${r.id})">Salvar</button>
+         <button class="btn" onclick="save(${r.id})">Salvar</button>
        </td>
      </tr>
    `;
