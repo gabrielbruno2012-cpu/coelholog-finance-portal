@@ -1,116 +1,150 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<link rel="stylesheet" href="/css/style.css">
+  <meta charset="UTF-8">
+  <title>Painel Administrativo - CoelhoLog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-/* TOPBAR AZUL */
-.topbar {
-  width: 100%;
-  height: 70px;
-  background: #072042;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 25px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-}
+  <!-- Seu CSS geral -->
+  <link rel="stylesheet" href="/css/style.css">
 
-/* LOGO HORIZONTAL */
-.topbar img {
-  height: 42px;
-}
+  <style>
+    /* TOPBAR AZUL */
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      background: #062447;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      z-index: 100;
+    }
 
-/* BOTÃO DE LOGOUT */
-.topbar .logout-btn {
-  background: #FFC400;
-  border: none;
-  padding: 10px 22px;
-  font-weight: bold;
-  border-radius: 8px;
-  cursor: pointer;
-}
+    .topbar-logo img {
+      height: 38px;
+      display: block;
+    }
 
-/* CONTEÚDO PRINCIPAL */
-.main {
-  margin-left: 230px;
-  padding: 30px;
-}
+    .topbar-right .btn {
+      background: #FFC400;
+      color: #000;
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+    }
 
-/* TÍTULOS E CARDS */
-h1 {
-  margin-top: 25px;
-  color: #072042;
-}
+    /* MAIN – empurra para baixo do topbar e para a direita do sidebar */
+    .main {
+      margin-left: 220px;       /* largura do sidebar */
+      padding: 100px 40px 40px; /* 100px para não ficar debaixo da topbar */
+      min-height: 100vh;
+      background: #f5f7fb;
+    }
 
-.top-cards {
-  display: flex;
-  gap: 20px;
-  margin-top: 20px;
-}
+    .main h1 {
+      margin-bottom: 20px;
+      color: #062447;
+    }
 
-.top-card {
-  background: #fff;
-  width: 260px;
-  padding: 22px;
-  border-radius: 12px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-}
+    /* Cards do topo (mantendo seu layout atual) */
+    .top-cards {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 25px;
+    }
 
-.top-card .small {
-  font-size: 14px;
-  color: #666;
-}
+    .top-card {
+      flex: 1;
+      min-width: 210px;
+    }
 
-.top-card h2 {
-  margin-top: 10px;
-  color: #072042;
-}
+    .top-card .small {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 6px;
+    }
 
-/* TABELA */
-.table {
-  width: 100%;
-  margin-top: 15px;
-  border-collapse: collapse;
-}
+    .top-card h2 {
+      font-size: 22px;
+      color: #062447;
+    }
 
-.table th {
-  background: #f3f3f3;
-  padding: 12px;
-  color: #072042;
-}
+    /* Card da tabela */
+    .card-table {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 20px 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
 
-.table td {
-  padding: 10px;
-  border-bottom: 1px solid #e5e5e5;
-  color: #072042;
-}
-</style>
+    .card-table h2 {
+      margin-bottom: 15px;
+      color: #062447;
+    }
 
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .table th {
+      background: #f3f3f3;
+      padding: 10px 12px;
+      text-align: left;
+      color: #062447;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #e5e5e5;
+      font-size: 14px;
+      color: #062447;
+    }
+  </style>
 </head>
 <body>
 
 <script>
-// ===== PROTEÇÃO DE ACESSO =====
-const uStr = localStorage.getItem("usuario");
-let u = null;
-try { u = uStr ? JSON.parse(uStr) : null; } catch(e){ u = null; }
-
-if (!u) {
-  window.location.href = "/";
-} else if (u.role !== "financeiro" && u.role !== "admin") {
-  window.location.href = "/colaborador/dashboard.html";
-}
+  // PROTEÇÃO DO ADMIN (usa o "user" salvo no login)
+  (function(){
+    try {
+      const u = JSON.parse(localStorage.getItem('user'));
+      if (!u) {
+        window.location.href = '/';
+        return;
+      }
+      if (u.role !== 'financeiro' && u.role !== 'admin') {
+        window.location.href = '/colaborador/dashboard.html';
+        return;
+      }
+    } catch(e){
+      console.error('Erro ao validar usuário', e);
+      localStorage.clear();
+      window.location.href = '/';
+    }
+  })();
 </script>
 
-<!-- SIDEBAR -->
+<!-- SIDEBAR (carregado via include) -->
 <div id="sidebar"></div>
 
-<!-- TOPBAR AZUL + LOGO COMPLETA -->
+<!-- TOPBAR AZUL COM LOGO HORIZONTAL -->
 <div class="topbar">
+  <div class="topbar-logo">
     <img src="/img/logo.png" alt="CoelhoLog">
-    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+  <div class="topbar-right">
+    <button class="btn" onclick="logout()">Logout</button>
+  </div>
 </div>
 
 <!-- CONTEÚDO PRINCIPAL -->
@@ -118,59 +152,74 @@ if (!u) {
   <h1>Painel Administrativo</h1>
 
   <div class="top-cards">
-    <div class="top-card card"><div class="small">Recebíveis Pendentes</div><h2 id="rpend"></h2></div>
-    <div class="top-card card"><div class="small">Recebíveis Pagos</div><h2 id="rpago"></h2></div>
-    <div class="top-card card"><div class="small">Empréstimos Pendentes</div><h2 id="epend"></h2></div>
-    <div class="top-card card"><div class="small">Empréstimos Aprovados</div><h2 id="eaprov"></h2></div>
+    <div class="top-card card">
+      <div class="small">Recebíveis Pendentes</div>
+      <h2 id="rpend">R$ 0,00</h2>
+    </div>
+    <div class="top-card card">
+      <div class="small">Recebíveis Pagos</div>
+      <h2 id="rpago">R$ 0,00</h2>
+    </div>
+    <div class="top-card card">
+      <div class="small">Empréstimos Pendentes</div>
+      <h2 id="epend">0</h2>
+    </div>
+    <div class="top-card card">
+      <div class="small">Empréstimos Aprovados</div>
+      <h2 id="eaprov">0</h2>
+    </div>
   </div>
 
-  <div class="card" style="margin-top: 35px; padding: 25px; border-radius: 12px; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,0.1);">
-    <h3 style="color:#072042;">Últimos Recebíveis</h3>
+  <div class="card-table">
+    <h2>Últimos Recebíveis</h2>
     <table class="table" id="receb"></table>
   </div>
 </div>
 
 <script>
-// Carrega sidebar
-fetch('/admin/sidebar_admin.html')
-  .then(r => r.text())
-  .then(html => { document.getElementById("sidebar").innerHTML = html });
+  // Carrega sidebar
+  fetch('/admin/sidebar_admin.html')
+    .then(r => r.text())
+    .then(html => { document.getElementById('sidebar').innerHTML = html; });
 
-// Formatador de valores
-function fmt(n){ return "R$ " + Number(n||0).toLocaleString("pt-BR",{minimumFractionDigits:2}); }
+  // Formata valores em R$
+  function fmt(n){
+    return 'R$ ' + Number(n || 0).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  }
 
-// Logout
-function logout(){ localStorage.clear(); location="/"; }
+  function logout(){
+    localStorage.clear();
+    location = '/';
+  }
 
-// ===== CARREGAR DADOS DO DASHBOARD =====
-async function load(){
-  let rec = await fetch("/api/recebiveis").then(r=>r.json());
-  let emp = await fetch("/api/emprestimos").then(r=>r.json());
+  async function load(){
+    const rec = await fetch('/api/recebiveis').then(r => r.json());
+    const emp = await fetch('/api/emprestimos').then(r => r.json());
 
-  let pendR = rec.filter(r=>r.status=="Pendente");
-  let pagoR = rec.filter(r=>r.status=="Pago");
-  let pendE = emp.filter(e=>e.status=="Em análise");
-  let aprE  = emp.filter(e=>e.status=="Aprovado");
+    const pendR = rec.filter(r => r.status === 'Pendente');
+    const pagoR = rec.filter(r => r.status === 'Pago');
+    const pendE = emp.filter(e => e.status === 'Em análise');
+    const aprE  = emp.filter(e => e.status === 'Aprovado');
 
-  rpend.innerText = fmt(pendR.reduce((t,x)=>t+Number(x.valor),0));
-  rpago.innerText = fmt(pagoR.reduce((t,x)=>t+Number(x.valor),0));
-  epend.innerText = pendE.length;
-  eaprov.innerText = aprE.length;
+    document.getElementById('rpend').innerText = fmt(pendR.reduce((t,x)=>t+Number(x.valor),0));
+    document.getElementById('rpago').innerText = fmt(pagoR.reduce((t,x)=>t+Number(x.valor),0));
+    document.getElementById('epend').innerText = pendE.length;
+    document.getElementById('eaprov').innerText = aprE.length;
 
-  let html = "<tr><th>ID</th><th>Usuário</th><th>Valor</th><th>Status</th></tr>";
-  rec.slice(0,10).forEach(r=>{
-    html += `<tr>
-      <td>${r.id}</td>
-      <td>${r.nome}</td>
-      <td>${fmt(r.valor)}</td>
-      <td>${r.status}</td>
-    </tr>`;
-  });
+    let html = '<tr><th>ID</th><th>Usuário</th><th>Valor</th><th>Status</th></tr>';
+    rec.slice(0,10).forEach(r=>{
+      html += `<tr>
+        <td>${r.id}</td>
+        <td>${r.nome}</td>
+        <td>${fmt(r.valor)}</td>
+        <td>${r.status}</td>
+      </tr>`;
+    });
 
-  receb.innerHTML = html;
-}
+    document.getElementById('receb').innerHTML = html;
+  }
 
-load();
+  load();
 </script>
 
 </body>
