@@ -17,7 +17,7 @@ const db = new sqlite3.Database(DB);
 
 const ZAPI_INSTANCE = "3EA8C2DFDF843142F1BD324DD30A57B5";
 const ZAPI_TOKEN = "E27F2FADD7C07BF4B31E49A5";
-const ADMIN_WHATSAPP = "5511937311392";
+const ADMIN_WHATSAPP = "5511956914104";
 
 // normaliza telefone e adiciona +55 se faltar
 function normalizePhone(phone) {
