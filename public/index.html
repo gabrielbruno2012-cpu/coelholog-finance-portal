@@ -1,139 +1,119 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CoelhoLog - Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoelhoLog - Login</title>
+    <link rel="stylesheet" href="css/style.css">
 
-<style>
-    body {
-        margin: 0;
-        background: #062345;
-        font-family: Arial, sans-serif;
-    }
+    <style>
+        body {
+            background: #062447;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
 
-    .login-container {
-        max-width: 420px;
-        margin: 70px auto;
-        text-align: center;
-        padding: 20px;
-    }
+        .login-container {
+            width: 100%;
+            max-width: 380px;
+            margin: 100px auto;
+            background: white;
+            border-radius: 14px;
+            padding: 40px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            text-align: center;
+        }
 
-    .logo-box img {
-        width: 260px;
-        margin-bottom: 30px;
-        user-select: none;
-    }
+        .login-container img {
+            width: 160px;
+            margin-bottom: 20px;
+        }
 
-    .login-card {
-        background: #ffffff;
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0px 4px 20px rgba(0,0,0,0.3);
-        text-align: left;
-    }
+        input {
+            width: 100%;
+            padding: 14px;
+            margin-top: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
 
-    .login-card h2 {
-        text-align: center;
-        color: #062345;
-        margin-bottom: 25px;
-        font-size: 26px;
-        font-weight: bold;
-    }
+        button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px;
+            background: #FFC300;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 15px;
+        }
 
-    .input {
-        width: 100%;
-        padding: 12px;
-        border: 1px solid #cccccc;
-        border-radius: 8px;
-        margin-top: 10px;
-        font-size: 15px;
-    }
+        button:hover {
+            background: #e6b200;
+        }
 
-    .btn-login {
-        width: 100%;
-        background: #f3c400;
-        padding: 13px;
-        border: none;
-        border-radius: 8px;
-        margin-top: 20px;
-        font-size: 18px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-
-    .btn-login:hover {
-        background: #d9ad00;
-    }
-
-    #msg {
-        margin-top: 12px;
-        color: red;
-        font-weight: bold;
-        text-align: center;
-    }
-</style>
-
+        .error {
+            color: red;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 
-<div class="login-container">
-
-    <!-- LOGO -->
-    <div class="logo-box">
+    <div class="login-container">
         <img src="/img/logo.png" alt="CoelhoLog">
+
+        <h2>Acesso ao Sistema</h2>
+
+        <input type="text" id="cpf" placeholder="CPF">
+        <input type="password" id="senha" placeholder="Senha">
+
+        <button onclick="login()">Entrar</button>
+
+        <div id="erro" class="error"></div>
     </div>
-
-    <!-- CARD DO LOGIN -->
-    <div class="login-card">
-        <h2>Login</h2>
-
-        <label>E-mail</label>
-        <input id="email" class="input" type="email" placeholder="seuemail@email.com">
-
-        <label style="margin-top:15px;">Senha</label>
-        <input id="password" class="input" type="password" placeholder="Digite sua senha">
-
-        <button class="btn-login" onclick="login()">Entrar</button>
-
-        <p id="msg"></p>
-    </div>
-
-</div>
 
 <script>
-async function login(){
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value.trim();
+async function login() {
+    const cpf = document.getElementById("cpf").value.trim();
+    const senha = document.getElementById("senha").value.trim();
+    const erro = document.getElementById("erro");
 
-    if(!email || !password){
-        document.getElementById('msg').innerText = "Preencha todos os campos.";
+    if (!cpf || !senha) {
+        erro.textContent = "Preencha todos os campos!";
         return;
     }
 
     try {
-        const res = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+        const res = await fetch("/api/usuarios/login", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ cpf, senha })
         });
 
-        if(!res.ok){
-            document.getElementById('msg').innerText = "E-mail ou senha incorretos.";
+        if (!res.ok) {
+            erro.textContent = "CPF ou senha incorretos!";
             return;
         }
 
         const user = await res.json();
-        localStorage.setItem("usuario", JSON.stringify(user));
 
-        if(user.role === "financeiro" || user.role === "admin"){
+        // CORREÇÃO PRINCIPAL: SALVAR COMO "user"
+        localStorage.setItem("user", JSON.stringify(user));
+
+        // REDIRECIONAMENTO CORRETO
+        if (user.role === "admin" || user.role === "financeiro") {
             window.location.href = "/admin/dashboard_admin.html";
         } else {
             window.location.href = "/colaborador/dashboard.html";
         }
 
-    } catch (err) {
-        document.getElementById('msg').innerText = "Erro ao conectar no servidor.";
+    } catch (e) {
+        console.error("Erro no login:", e);
+        erro.textContent = "Erro ao conectar ao servidor!";
     }
 }
 </script>
