@@ -446,28 +446,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// rota para upload
-app.post("/api/producao/enviar-nota", upload.single("nota"), (req, res) => {
-    const { producao_id, usuario_id } = req.body;
-
-    if (!req.file) {
-        return res.status(400).json({ error: "Arquivo não enviado" });
-    }
-
-    const arquivo = req.file.filename;
-
-    db.run(`
-        UPDATE producao
-        SET nota = ?
-        WHERE id = ? AND usuario_id = ?
-    `, [arquivo, producao_id, usuario_id], (err) => {
-        if (err) {
-            return res.status(500).json({ error: "Erro ao salvar no banco" });
-        }
-        res.json({ success: true, file: arquivo });
-    });
-});
-
 // ======================================
 // UPLOAD DE NOTA (COM TRAVA)
 // ======================================
