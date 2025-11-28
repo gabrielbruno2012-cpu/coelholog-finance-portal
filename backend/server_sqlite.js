@@ -469,6 +469,87 @@ app.post("/api/producao/enviar-nota", upload.single("nota"), (req, res) => {
 });
 
 // ======================================
+// UPLOAD DE NOTA (COM TRAVA)
+// ======================================
+
+app.post("/api/producao/enviar-nota", upload.single("nota"), (req, res) => {
+    const { producao_id, usuario_id } = req.body;
+
+    if (!req.file) {
+        return res.status(400).json({ error: "Arquivo não enviado" });
+    }
+
+    const arquivo = req.file.filename;
+
+    // 1️⃣ Verificar se a produção existe e se a nota pode ser enviada
+    db.get(`
+        SELECT nota_status 
+        FROM producao_colaborador 
+        WHERE id = ? AND usuario_id = ?
+    `, [producao_id, usuario_id], (err, row) => {
+
+        if (!row) {
+            return res.status(404).json({ error: "Produção não encontrada" });
+        }
+
+        // Se já enviou e está pendente ou aprovado → TRAVA
+        if (row.nota_status === "pendente" || row.nota_status === "aprovado") {
+            return res.status(403).json({
+                error: "Nota já enviada. Aguarde análise do administrador."
+            });
+        }
+
+        // 2️⃣ Permitir envio caso esteja recusada ou null
+        db.run(`
+            UPDATE producao_colaborador
+            SET nota = ?, nota_status = 'pendente'
+            WHERE id = ? AND usuario_id = ?
+        `, [arquivo, producao_id, usuario_id], (err2) => {
+
+            if (err2) {
+                return res.status(500).json({ error: "Erro ao salvar nota" });
+            }
+
+            res.json({
+                success: true,
+                file: arquivo,
+                status: "pendente"
+            });
+        });
+    });
+});
+
+// ======================================
+// ADMIN - APROVAR NOTA
+// ======================================
+app.put("/api/producao/aprovar-nota/:id", (req, res) => {
+    db.run(`
+        UPDATE producao_colaborador
+        SET nota_status = 'aprovado'
+        WHERE id = ?
+    `, [req.params.id], (err) => {
+        if (err) return res.status(500).json({ error: "db" });
+        res.json({ ok: true });
+    });
+});
+
+// ======================================
+// ADMIN - RECUSAR NOTA
+// ======================================
+app.put("/api/producao/recusar-nota/:id", (req, res) => {
+    db.run(`
+        UPDATE producao_colaborador
+        SET nota = NULL,
+            nota_status = 'recusado'
+        WHERE id = ?
+    `, [req.params.id], (err) => {
+        if (err) return res.status(500).json({ error: "db" });
+        res.json({ ok: true });
+    });
+});
+
+
+// ======================================
 // START SERVER
 // ======================================
 const PORT = process.env.PORT || 3000;
