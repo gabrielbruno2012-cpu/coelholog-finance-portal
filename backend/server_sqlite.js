@@ -413,7 +413,6 @@ app.get('/api/producao/colaborador', (req, res) => {
             p.desconto,
             p.total_calculado,
             p.obs
-            p.nota
         FROM producao_colaborador p
         LEFT JOIN usuarios u ON u.id = p.usuario_id
         WHERE p.usuario_id = ?
