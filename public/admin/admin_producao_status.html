@@ -2,11 +2,9 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/css/style.css">
   <title>Status das Produções</title>
+  <link rel="stylesheet" href="/css/style.css">
 </head>
-
 <body>
 
 <div id="sidebar-container"></div>
@@ -19,32 +17,31 @@
   <h1>Status das Produções</h1>
 
   <div class="card">
-    <h3>Produções Pendentes</h3>
+    <h3>Produções (todas)</h3>
     <div id="lista-pendentes" style="margin-top:20px;"></div>
   </div>
 </main>
 
 <script>
-// carregar sidebar
+// carregar sidebar do admin (ajusta se o seu caminho for diferente)
 fetch("/components/sidebar_admin.html")
   .then(r => r.text())
   .then(html => document.getElementById("sidebar-container").innerHTML = html);
 
-function logout() {
+function logout(){
   localStorage.removeItem("usuario");
   localStorage.removeItem("user");
   window.location = "/";
 }
 
-// carregar produções pendentes
-async function carregarProducoesPendentes() {
-  const res = await fetch("/api/producao/pendentes");
+// carregar TODAS as produções
+async function carregarProducoes() {
+  const res = await fetch("/api/producao/pendentes"); // agora traz tudo
   const dados = await res.json();
-
   const container = document.getElementById("lista-pendentes");
 
   if (!dados.length) {
-    container.innerHTML = `<p style="text-align:center; color:#ccc;">Nenhuma produção pendente.</p>`;
+    container.innerHTML = `<p style="text-align:center; color:#ccc;">Nenhuma produção cadastrada.</p>`;
     return;
   }
 
@@ -56,22 +53,47 @@ async function carregarProducoesPendentes() {
         <th>Data</th>
         <th>Valor</th>
         <th>Nota</th>
+        <th>Status</th>
         <th>Ações</th>
       </tr>
   `;
 
   dados.forEach(p => {
+    const status = (p.nota_status || "").toLowerCase();
+    let statusLabel = "—";
+    let statusClass = "";
+
+    if (status === "pendente") {
+      statusLabel = "Pendente";
+      statusClass = "tag-yellow";
+    } else if (status === "aprovado") {
+      statusLabel = "Aprovado";
+      statusClass = "tag-green";
+    } else if (status === "recusado") {
+      statusLabel = "Recusado";
+      statusClass = "tag-red";
+    }
+
+    // ações só se estiver pendente
+    let acoes = "—";
+    if (status === "pendente") {
+      acoes = `
+        <button class="btn-green" onclick="aprovar(${p.id})">Aprovar</button>
+        <button class="btn-red" onclick="reprovar(${p.id})">Reprovar</button>
+      `;
+    }
+
     html += `
       <tr>
         <td>P-${p.id}</td>
         <td>${p.colaborador}</td>
         <td>${p.data}</td>
         <td>R$ ${Number(p.total_calculado).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-        <td><a href="/uploads/notas/${p.nota}" class="btn-sm" target="_blank">Ver Nota</a></td>
         <td>
-          <button class="btn-green" onclick="aprovar(${p.id})">Aprovar</button>
-          <button class="btn-red" onclick="reprovar(${p.id})">Reprovar</button>
+          ${p.nota ? `<a href="/uploads/notas/${p.nota}" target="_blank" class="btn-sm">Ver Nota</a>` : "—"}
         </td>
+        <td><span class="${statusClass}">${statusLabel}</span></td>
+        <td>${acoes}</td>
       </tr>
     `;
   });
@@ -80,32 +102,26 @@ async function carregarProducoesPendentes() {
   container.innerHTML = html;
 }
 
-// APROVAR = usa rota CERTA
+// aprovar → usa rota que já existe no server
 async function aprovar(id) {
-  if (!confirm("Confirmar aprovação?")) return;
+  if (!confirm("Confirmar aprovação desta produção?")) return;
 
-  await fetch(`/api/producao/aprovar-nota/${id}`, {
-    method: "PUT"
-  });
-
+  await fetch(`/api/producao/aprovar-nota/${id}`, { method: "PUT" });
   alert("Produção aprovada!");
-  carregarProducoesPendentes();
+  carregarProducoes();
 }
 
-// RECUSAR = usa rota CERTA
+// reprovar → usa rota que já existe no server
 async function reprovar(id) {
-  if (!confirm("Confirmar rejeição da nota?")) return;
+  if (!confirm("Confirmar reprovação desta produção?")) return;
 
-  await fetch(`/api/producao/recusar-nota/${id}`, {
-    method: "PUT"
-  });
-
+  await fetch(`/api/producao/recusar-nota/${id}`, { method: "PUT" });
   alert("Produção recusada!");
-  carregarProducoesPendentes();
+  carregarProducoes();
 }
 
-document.addEventListener("DOMContentLoaded", carregarProducoesPendentes);
-
+document.addEventListener("DOMContentLoaded", carregarProducoes);
 </script>
+
 </body>
 </html>
