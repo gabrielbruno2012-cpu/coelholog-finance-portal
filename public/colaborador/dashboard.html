@@ -1,71 +1,144 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard Colaborador</title>
+
+<link rel="stylesheet" href="/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
 <script>
+// Sincronizar login admin → colaborador
+if (localStorage.getItem('usuario') && !localStorage.getItem('user')) {
+    localStorage.setItem('user', localStorage.getItem('usuario'));
+}
+</script>
+
+<!-- SIDEBAR -->
+<div id="sidebar-container"></div>
+
+<main class="main">
+
+  <div class="header-right">
+      <button class="btn" onclick="logout()">Logout</button>
+  </div>
+
+  <h1>Bem-vindo, <span id="username">Colaborador</span></h1>
+
+  <div class="top-cards">
+      <div class="top-card card">
+          <div class="small">Total Recebido</div>
+          <div id="total_recebido" class="huge">R$ 0,00</div>
+      </div>
+
+      <div class="top-card card">
+          <div class="small">Total Pendente</div>
+          <div id="total_pendente" class="huge">R$ 0,00</div>
+      </div>
+
+      <div class="top-card card">
+          <div class="small">Em Processamento</div>
+          <div id="total_processamento" class="huge">R$ 0,00</div>
+      </div>
+  </div>
+
+  <div class="card">
+      <h3>Ganhos no Mês</h3>
+      <div style="height:220px">
+          <canvas id="barChart"></canvas>
+      </div>
+  </div>
+
+  <div class="card">
+      <h3>Recebíveis</h3>
+      <div id="recList"></div>
+  </div>
+
+</main>
+
+<script>
+//////////////////////////////////////////////////////////////////////////////
+// CARREGAR SIDEBAR
+//////////////////////////////////////////////////////////////////////////////
 fetch('/components/sidebar.html')
   .then(r=>r.text())
   .then(html=> document.getElementById('sidebar-container').innerHTML = html);
 
+//////////////////////////////////////////////////////////////////////////////
+// FUNÇÕES ÚTEIS
+//////////////////////////////////////////////////////////////////////////////
 function logout(){
   localStorage.removeItem('user');
   window.location = '/';
 }
 
 function fmt(v){
-  return 'R$ ' + Number(v||0).toLocaleString('pt-BR',{
-    minimumFractionDigits:2,
-    maximumFractionDigits:2
-  });
+  return 'R$ ' + Number(v||0).toLocaleString(
+    'pt-BR',
+    {minimumFractionDigits:2, maximumFractionDigits:2}
+  );
 }
 
 window._barChart = null;
 
+//////////////////////////////////////////////////////////////////////////////
+// CARREGAR DASHBOARD COMPLETO
+//////////////////////////////////////////////////////////////////////////////
 async function loadDashboard(){
-  // --- usuário ---
+
   const rawUser = localStorage.getItem("user") || localStorage.getItem("usuario");
   if(!rawUser){ window.location='/'; return; }
-  const user = JSON.parse(rawUser);
 
+  const user = JSON.parse(rawUser);
   if(!user.id){ window.location='/'; return; }
 
   document.getElementById('username').innerText = user.nome || user.email;
 
-  // data atual p/ API
   const hoje = new Date();
   const mes = String(hoje.getMonth()+1).padStart(2,'0');
   const ano = hoje.getFullYear();
 
-  // --- chamadas API ---
   let recebiveis = [];
   let producoes = [];
 
   try{
     const [r1, r2] = await Promise.all([
+
       fetch('/api/recebiveis?user_id='+user.id),
+
       fetch(`/api/producao/colaborador?usuario_id=${user.id}&mes=${mes}&ano=${ano}`)
+
     ]);
 
     recebiveis = await r1.json();
 
-    const prod = await r2.json();
-    producoes = Array.isArray(prod) ? prod : [];
+    const p = await r2.json();
+    producoes = Array.isArray(p) ? p : [];
 
   }catch(e){
     console.error("Erro ao carregar APIs:", e);
   }
 
-  // --- converter PRODUÇÃO para o mesmo formato dos recebíveis ---
+  ///////////////////////////////////////////////////////////////////////
+  // CONVERTER PRODUÇÃO → mesmo formato dos recebíveis
+  ///////////////////////////////////////////////////////////////////////
   const producoesConvertidas = producoes.map(p => ({
-    id: "P-" + p.id,
-    data: p.data,
-    valor: Number(p.total_calculado || 0),
-    tipo: "Produção",
-    status: p.nota_status || "pendente"
+      id: "P-" + p.id,
+      data: p.data,
+      valor: Number(p.total_calculado || 0),
+      tipo: "Produção",
+      status: p.nota_status || "pendente"
   }));
 
-  // --- juntar tudo ---
   const rows = [...recebiveis, ...producoesConvertidas];
 
-  // ---------------------------
-  //       SOMAR TOTALIZADORES
-  // ---------------------------
+  ///////////////////////////////////////////////////////////////////////
+  // SOMAR CARDS
+  ///////////////////////////////////////////////////////////////////////
   let total=0, pend=0, proc=0;
 
   rows.forEach(r=>{
@@ -81,75 +154,83 @@ async function loadDashboard(){
   document.getElementById('total_pendente').innerText = fmt(pend);
   document.getElementById('total_processamento').innerText = fmt(proc);
 
-  // ---------------------------
-  //          TABELA
-  // ---------------------------
-  if(rows.length===0){
-    document.getElementById('recList').innerHTML='<p class="small">Nenhum recebível.</p>';
+  ///////////////////////////////////////////////////////////////////////
+  // TABELA
+  ///////////////////////////////////////////////////////////////////////
+  if(rows.length === 0){
+      document.getElementById('recList').innerHTML =
+        '<p class="small">Nenhum recebível.</p>';
   } else {
-    let html = '<table class="table"><tr><th>ID</th><th>Data</th><th>Valor</th><th>Tipo</th><th>Status</th></tr>';
-    rows.forEach(r=>{
-      html += `
-      <tr>
-        <td>${r.id}</td>
-        <td>${r.data||''}</td>
-        <td>${fmt(r.valor)}</td>
-        <td>${r.tipo||''}</td>
-        <td>${r.status||''}</td>
-      </tr>`;
-    });
-    html += '</table>';
-    document.getElementById('recList').innerHTML = html;
+      let html =
+        `<table class="table"><tr>
+          <th>ID</th><th>Data</th><th>Valor</th><th>Tipo</th><th>Status</th>
+        </tr>`;
+
+      rows.forEach(r=>{
+        html += `
+          <tr>
+            <td>${r.id}</td>
+            <td>${r.data||''}</td>
+            <td>${fmt(r.valor)}</td>
+            <td>${r.tipo||''}</td>
+            <td>${r.status||''}</td>
+          </tr>`;
+      });
+
+      html += `</table>`;
+      document.getElementById('recList').innerHTML = html;
   }
 
-  // ---------------------------
-  //       GRÁFICO (somente valores pagos/aprovados)
-  // ---------------------------
+  ///////////////////////////////////////////////////////////////////////
+  // GRÁFICO - somente recebidos (pago/aprovado)
+  ///////////////////////////////////////////////////////////////////////
   const byMonth = {};
+
   rows.forEach(r=>{
     const st = (r.status||'').toLowerCase();
-    if(!st.includes("pago") && !st.includes("aprov")) return;
+    if(!st.includes('pago') && !st.includes('aprov')) return;
 
-    const date = r.data ? r.data.split(' ')[0] : '';
-    let m = '0';
-    if(date.includes('-')) m = date.split('-')[1];
+    const date = r.data ? r.data.split(' ')[0] : '0000-00-00';
+    const m = date.split('-')[1] || "00";
 
-    byMonth[m] = (byMonth[m]||0) + Number(r.valor||0);
+    byMonth[m] = (byMonth[m] || 0) + Number(r.valor||0);
   });
 
   const months = Object.keys(byMonth).sort();
   const labels = months.map(m =>
     ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][parseInt(m)-1] || m
   );
-  const data = months.map(m => byMonth[m]||0);
+  const data = months.map(m => byMonth[m] || 0);
 
   const ctx = document.getElementById('barChart').getContext('2d');
 
   if(window._barChart) window._barChart.destroy();
 
-  window._barChart = new Chart(ctx, {
-    type:'bar',
-    data:{
-      labels,
-      datasets:[{
-        label:'Ganhos (R$)',
-        data,
-        backgroundColor:'#F6C21B',
-        borderRadius:6
-      }]
-    },
-    options:{
-      scales:{ y:{ beginAtZero:true, ticks:{ callback: v => 'R$ ' + v } } },
-      plugins:{ legend:{ display:false } },
-      responsive:true,
-      maintainAspectRatio:false
-    }
+  window._barChart = new Chart(ctx,{
+      type:'bar',
+      data:{
+          labels,
+          datasets:[{
+              label:'Ganhos (R$)',
+              data,
+              backgroundColor:'#F6C21B',
+              borderRadius:6
+          }]
+      },
+      options:{
+          scales:{
+            y:{ beginAtZero:true, ticks:{ callback:v=>'R$ '+v } }
+          },
+          plugins:{ legend:{ display:false } },
+          responsive:true,
+          maintainAspectRatio:false
+      }
   });
 
 }
 
-// permite reload externo
-window.loadDashboard = loadDashboard;
-
 window.onload = loadDashboard;
 </script>
+
+</body>
+</html>
