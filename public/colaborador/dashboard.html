@@ -151,5 +151,5 @@ async function loadDashboard(){
 // permite reload externo
 window.loadDashboard = loadDashboard;
 
-document.addEventListener('DOMContentLoaded', loadDashboard);
+window.onload = loadDashboard;
 </script>
