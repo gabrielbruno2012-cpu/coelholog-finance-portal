@@ -363,7 +363,13 @@ async function carregar() {
             <td>${l.obs || ""}</td>
             <td>
                 <input type="file" accept="image/*,application/pdf" style="display:none" id="file_${l.id}">
-                <button class="btn-upload" onclick="enviarNota(${l.id})">Enviar</button>
+                ${
+                    l.nota_status === "pendente"
+                    ? "<span style='color:yellow'>Aguardando análise</span>"
+                    : l.nota_status === "aprovao"
+                    ? "<span style='color:lightgreen'>Aprovada</span>"
+                    : `<button class="btn-upload" onclick="enviarNota(${l.id})">Enviar</button>`
+                }
             </td>
 
         </tr>`;
