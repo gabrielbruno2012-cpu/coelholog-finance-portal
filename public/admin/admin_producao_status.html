@@ -2,59 +2,134 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Status das Produções</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
-<!-- SIDEBAR ADMIN -->
 <div id="sidebar-container"></div>
 
 <main class="main">
+    <div class="header-right">
+        <button class="btn" onclick="logout()">Logout</button>
+    </div>
 
     <h1>Status das Produções</h1>
 
     <div class="card">
         <h3>Produções Pendentes</h3>
-        <div id="lista"></div>
+        <div id="lista-pendentes" style="margin-top:20px;"></div>
     </div>
-
 </main>
 
+
 <script>
-// Carrega sidebar do admin
-fetch('/admin/sidebar.html')
+// -------- CARREGAR SIDEBAR ----------
+fetch('/components/sidebar_admin.html')
     .then(r => r.text())
-    .then(html => document.getElementById("sidebar-container").innerHTML = html);
+    .then(html => document.getElementById('sidebar-container').innerHTML = html);
 
 
-// Função para abrir nota enviada
-function verNota(nota) {
-    if (!nota) {
-        alert("Este lançamento não possui nota.");
-        return;
+// -------- LOGOUT ----------
+function logout() {
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("user");
+    window.location = "/";
+}
+
+
+// -------- CARREGAR PRODUÇÕES PENDENTES ----------
+async function carregarProducoesPendentes() {
+    try {
+        const res = await fetch("/api/producao/pendentes");
+        const dados = await res.json();
+
+        const container = document.getElementById("lista-pendentes");
+
+        if (!dados || dados.length === 0) {
+            container.innerHTML = `
+                <p style="color:#ccc; text-align:center; padding:20px;">
+                    Nenhuma produção pendente.
+                </p>`;
+            return;
+        }
+
+        let html = `
+        <table class="table">
+            <tr>
+                <th>ID</th>
+                <th>Colaborador</th>
+                <th>Data</th>
+                <th>Valor</th>
+                <th>Nota</th>
+                <th>Ações</th>
+            </tr>
+        `;
+
+        dados.forEach(p => {
+            html += `
+            <tr>
+                <td>P-${p.id}</td>
+                <td>${p.colaborador}</td>
+                <td>${p.data}</td>
+                <td>R$ ${Number(p.total_calculado).toLocaleString("pt-BR", { minimumFractionDigits:2 })}</td>
+                <td>
+                    <a href="/uploads/notas/${p.nota}" target="_blank" class="btn-sm">
+                        Ver Nota
+                    </a>
+                </td>
+                <td>
+                    <button class="btn-green" onclick="aprovar(${p.id})">Aprovar</button>
+                    <button class="btn-red" onclick="reprovar(${p.id})">Reprovar</button>
+                </td>
+            </tr>
+            `;
+        });
+
+        html += "</table>";
+        container.innerHTML = html;
+
+    } catch (err) {
+        console.error("Erro ao carregar produções:", err);
     }
-    window.open("/uploads/notas/" + nota, "_blank");
 }
 
 
-// APROVAR produção
+// -------- APROVAR PRODUÇÃO ----------
 async function aprovar(id) {
-    if (!confirm("Aprovar esta produção?")) return;
+    if (!confirm("Confirmar APROVAÇÃO desta produção?")) return;
 
-    await fetch("/api/producao/aprovar-note/" + id);
-    loadPendentes();
+    await fetch("/api/producao/status", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: "aprovado" })
+    });
+
+    alert("Produção aprovada!");
+    carregarProducoesPendentes();
 }
 
 
-// RECUSAR produção
-async function recusar(id) {
-    if (!confirm("Recusar esta produção? O colaborador poderá enviar outra nota.")) return;
+// -------- REPROVAR PRODUÇÃO ----------
+async function reprovar(id) {
+    if (!confirm("Confirmar REPROVAÇÃO desta produção?")) return;
 
-    await fetch("/api/producao/recusar-note/" + id);
-    loadPendentes();
+    await fetch("/api/producao/status", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: "reprovado" })
+    });
+
+    alert("Produção reprovada!");
+    carregarProducoesPendentes();
 }
 
 
+// -------- INICIAR ----------
+document.addEventListener("DOMContentLoaded", carregarProducoesPendentes);
 
-// LISTAR PRODUÇÕES PENDE
+</script>
+
+</body>
+</html>
