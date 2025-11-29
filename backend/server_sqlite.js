@@ -528,6 +528,31 @@ app.put("/api/producao/recusar-nota/:id", (req, res) => {
     });
 });
 
+// ======================================
+// ADMIN – LISTAR TODAS AS PRODUÇÕES PENDENTES
+// ======================================
+app.get("/api/producao/pendentes", (req, res) => {
+    const sql = `
+        SELECT 
+            p.id,
+            p.data,
+            p.total_calculado,
+            p.nota,
+            p.nota_status,
+            u.nome AS colaborador
+        FROM producao_colaborador p
+        LEFT JOIN usuarios u ON u.id = p.usuario_id
+        WHERE p.nota_status = 'pendente'
+        ORDER BY p.data DESC
+    `;
+
+    db.all(sql, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: "db" });
+        res.json(rows);
+    });
+});
+
+
 
 // ======================================
 // START SERVER
