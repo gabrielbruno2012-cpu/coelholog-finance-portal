@@ -1,94 +1,60 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<title>Status das Produções</title>
-<link rel="stylesheet" href="/css/style.css">
+    <meta charset="UTF-8">
+    <title>Status das Produções</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
+<!-- SIDEBAR ADMIN -->
 <div id="sidebar-container"></div>
 
 <main class="main">
+
     <h1>Status das Produções</h1>
 
     <div class="card">
         <h3>Produções Pendentes</h3>
-        <div id="listaProducao"></div>
+        <div id="lista"></div>
     </div>
+
 </main>
 
 <script>
-// Carregar sidebar original do admin
+// Carrega sidebar do admin
 fetch('/admin/sidebar.html')
-  .then(r => r.text())
-  .then(html => document.getElementById('sidebar-container').innerHTML = html);
+    .then(r => r.text())
+    .then(html => document.getElementById("sidebar-container").innerHTML = html);
 
-// Carregar produções pendentes
-async function loadPendentes(){
-    const res = await fetch('/api/admin/producao/pendentes');
-    const rows = await res.json();
 
-    if(rows.length === 0){
-        document.getElementById('listaProducao').innerHTML =
-            "<p>Nenhuma produção pendente.</p>";
+// Função para abrir nota enviada
+function verNota(nota) {
+    if (!nota) {
+        alert("Este lançamento não possui nota.");
         return;
     }
-
-    let html = `
-    <table class="table">
-        <tr>
-            <th>ID</th>
-            <th>Colaborador</th>
-            <th>Data</th>
-            <th>Valor</th>
-            <th>Nota</th>
-            <th>Ações</th>
-        </tr>
-    `;
-
-    rows.forEach(p => {
-        const notaLink = p.nota ? `<button onclick="verNota('${p.nota}')">Ver Nota</button>` : '—';
-
-        html += `
-        <tr>
-            <td>${p.id}</td>
-            <td>${p.nome}</td>
-            <td>${p.data}</td>
-            <td>R$ ${p.total_calculado}</td>
-            <td>${notaLink}</td>
-            <td>
-                <button class="btn green" onclick="aprovar(${p.id})">Aprovar</button>
-                <button class="btn red" onclick="recusar(${p.id})">Recusar</button>
-            </td>
-        </tr>
-        `;
-    });
-
-    html += "</table>";
-
-    document.getElementById('listaProducao').innerHTML = html;
+    window.open("/uploads/notas/" + nota, "_blank");
 }
 
-// abrir nota
-function verNota(path){
-    window.open('/uploads/notas/' + path, '_blank');
-}
 
-// aprovar
-async function aprovar(id){
-    await fetch('/api/admin/producao/aprovar?id=' + id);
+// APROVAR produção
+async function aprovar(id) {
+    if (!confirm("Aprovar esta produção?")) return;
+
+    await fetch("/api/producao/aprovar-note/" + id);
     loadPendentes();
 }
 
-// recusar
-async function recusar(id){
-    await fetch('/api/admin/producao/recusar?id=' + id);
+
+// RECUSAR produção
+async function recusar(id) {
+    if (!confirm("Recusar esta produção? O colaborador poderá enviar outra nota.")) return;
+
+    await fetch("/api/producao/recusar-note/" + id);
     loadPendentes();
 }
 
-document.addEventListener('DOMContentLoaded', loadPendentes);
-</script>
 
-</body>
-</html>
+
+// LISTAR PRODUÇÕES PENDE
