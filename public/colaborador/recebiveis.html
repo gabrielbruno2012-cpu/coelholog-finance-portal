@@ -5,4 +5,53 @@ if (localStorage.getItem('usuario') && !localStorage.getItem('user')) {
     localStorage.setItem('user', localStorage.getItem('usuario'));
 }
 </script>
-<div id="sidebar-container"></div><main class="main"><h2>Recebíveis</h2><div class="card" id="lista"></div></main><script>fetch('/components/sidebar.html').then(r=>r.text()).then(html=> document.getElementById('sidebar-container').innerHTML = html);async function load(){const u=JSON.parse(localStorage.getItem('user')||'{}');if(!u.id){window.location='/';return;}const res=await fetch('/api/recebiveis?user_id='+u.id);const rows=await res.json();if(rows.length===0)document.getElementById('lista').innerHTML='<p class="small">Nenhum recebível.</p>';else{let html='<table class="table"><tr><th>ID</th><th>Data</th><th>Valor</th><th>Tipo</th><th>Status</th></tr>';rows.forEach(r=>html+=`<tr><td>${r.id}</td><td>${r.data}</td><td>R$ ${r.valor}</td><td>${r.tipo}</td><td>${r.status}</td></tr>`);html+='</table>';document.getElementById('lista').innerHTML=html;}}document.addEventListener('DOMContentLoaded',load);</script></body></html>
+<div id="sidebar-container"></div>
+<main class="main">
+<h2>Recebíveis</h2>
+<div class="card" id="lista"></div>
+</main>
+<script>
+fetch('/components/sidebar.html')
+  .then(r => r.text())
+  .then(html => document.getElementById('sidebar-container').innerHTML = html);
+
+async function load() {
+  const u = JSON.parse(localStorage.getItem('user') || '{}');
+  if (!u.id) {
+    window.location = '/';
+    return;
+  }
+
+  const [recebiveisRes, producoesRes] = await Promise.all([
+    fetch('/api/recebiveis?user_id=' + u.id),
+    fetch('/api/producao/colaborador?user_id=' + u.id)
+  ]);
+
+  const recebiveis = await recebiveisRes.json();
+  const producoes = await producoesRes.json();
+
+  const producoesConvertidas = producoes.map(p => ({
+    id: 'P-' + p.id,
+    data: p.data,
+    valor: p.total_calculado || 0,
+    tipo: 'Produção',
+    status: p.nota_status || 'pendente'
+  }));
+
+  const todos = [...recebiveis, ...producoesConvertidas];
+
+  if (todos.length === 0) {
+    document.getElementById('lista').innerHTML = '<p class="small">Nenhum recebível.</p>';
+    return;
+  }
+
+  let html = '<table class="table"><tr><th>ID</th><th>Data</th><th>Valor</th><th>Tipo</th><th>Status</th></tr>';
+  todos.forEach(r => html += `<tr><td>${r.id}</td><td>${r.data}</td><td>R$ ${r.valor}</td><td>${r.tipo}</td><td>${r.status}</td></tr>`);
+  html += '</table>';
+
+  document.getElementById('lista').innerHTML = html;
+}
+
+document.addEventListener('DOMContentLoaded', load);
+</script>
+</body></html>
