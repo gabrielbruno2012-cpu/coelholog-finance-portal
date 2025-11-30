@@ -24,7 +24,7 @@
 
 <script>
 // carregar sidebar do admin (ajusta se o seu caminho for diferente)
-fetch("/components/sidebar_admin.html")
+fetch("/admin/sidebar_admin.html")
   .then(r => r.text())
   .then(html => document.getElementById("sidebar-container").innerHTML = html);
 
