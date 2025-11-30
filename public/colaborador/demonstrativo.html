@@ -143,7 +143,21 @@ tbody tr:nth-child(even) {
     <img src="/img/logo.png">
     <button class="btn-logout" onclick="logout()">Logout</button>
 </div>
+<!-- SIDEBAR DO COLABORADOR -->
+<div id="sidebar-container"></div>
 
+<script>
+    // Carregar sidebar
+    fetch('/components/sidebar.html')
+        .then(r => r.text())
+        .then(html => {
+            document.getElementById('sidebar-container').innerHTML = html;
+
+            // Ajuste do layout: empurrar conteúdo para o lado
+            document.querySelector('.main').style.marginLeft = "240px";
+        });
+</script>
+    
 <div class="main">
     <h1>Demonstrativo de Produção</h1>
     <div id="msg"></div>
