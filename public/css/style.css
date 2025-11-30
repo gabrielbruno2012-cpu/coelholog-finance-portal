@@ -45,3 +45,27 @@ body{margin:0;background:linear-gradient(180deg,#021835,#062642);color:#fff;}
     z-index: 5;
 }
 
+.tag-yellow {
+  background: #F6C21B;
+  color: #0b1930;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.tag-green {
+  background: #2ecc71;
+  color: #0b1930;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.tag-red {
+  background: #e74c3c;
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
