@@ -371,16 +371,15 @@ async function carregar() {
             <td>${l.obs || ""}</td>
             <td>
                 <input type="file" accept="image/*,application/pdf" style="display:none" id="file_${l.id}">
-            ${
+                ${
                     l.nota_status === "pendente"
-                    ? "<span style='color:yellow;font-weight:600'>Aguardando análise</span>"
+                    ? "<span style='color:yellow'>Aguardando análise</span>"
                     : l.nota_status === "aprovado"
-                    ? "<span style='color:lightgreen;font-weight:600'>Aprovada</span>"
-                    : l.nota_status === "recusado"
-                    ? `<button class="btn-upload" style="padding:8px 16px;" onclick="enviarNota(${l.id})">Enviar novamente</button>`
-                    : "<span style='color:#ccc'>—</span>"
-    }
-</td>
+                    ? "<span style='color:lightgreen'>Aprovada</span>"
+                    : `<button class="btn-upload" style="padding:8px 16px;" onclick="enviarNota(${l.id})">Enviar</button>`
+                }
+            </td>
+
 
 
         </tr>`;
