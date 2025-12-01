@@ -1,30 +1,116 @@
+<style>
+/* --- CONTAINER DO SIDEBAR --- */
+.sidebar-collab {
+  width: 230px;
+  background: #071e3d;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding-top: 70px;
+  transition: width .25s ease-in-out;
+  overflow: hidden;
+  z-index: 50;
+}
 
-<div class="sidebar">
-  <div class="logo">CoelhoLog</div>
-  <div class="menu">
-    <a href="/colaborador/dashboard.html">🏠 Dashboard</a>
-    <a href="/colaborador/recebiveis.html">💰 Recebíveis</a>
-    <a href="/colaborador/solicitar_emprestimo.html">📝 Solicitar Empréstimo</a>
-    <a href="/colaborador/status_emprestimos.html">📄 Status Empréstimos</a>
-    <a href="/colaborador/demonstrativo.html">📄 Demonstrativo</a>
-    <div class="menu-title" style="margin-top:10px;color:#98a9bf;font-size:12px">Administração</div>
-    <div id="adminLinks"></div>
-    <div style="margin-top:14px"><a href="/" onclick="logout()">🔓 Logout</a></div>
-  </div>
+.sidebar-collab.collapsed {
+  width: 70px;
+}
+
+/* --- BOTÃO HAMBURGUER --- */
+.menu-toggle {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  font-size: 26px;
+  cursor: pointer;
+  color: white;
+  z-index: 100;
+}
+
+/* --- LISTA --- */
+.sidebar-collab ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar-collab li {
+  padding: 15px 15px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: background .2s;
+  white-space: nowrap;
+}
+
+.sidebar-collab li:hover {
+  background: #0a2b5c;
+}
+
+.sidebar-collab i {
+  font-style: normal;
+  font-size: 20px;
+}
+
+/* --- TEXTO SOME QUANDO FECHA --- */
+.sidebar-collab.collapsed span {
+  display: none;
+}
+
+/* --- AJUSTE DO MAIN --- */
+.main {
+  margin-left: 230px;
+  transition: margin-left .25s;
+}
+
+.main.collapsed {
+  margin-left: 70px;
+}
+
+</style>
+
+<div class="menu-toggle" onclick="toggleSidebar()">☰</div>
+
+<div id="menuColab" class="sidebar-collab">
+
+<ul>
+
+<li onclick="location.href='/dashboard.html'">
+  <i>🏠</i> <span>Dashboard</span>
+</li>
+
+<li onclick="location.href='/recebiveis.html'">
+  <i>💰</i> <span>Recebíveis</span>
+</li>
+
+<li onclick="location.href='/demonstrativo.html'">
+  <i>📦</i> <span>Produção</span>
+</li>
+
+<li onclick="location.href='/solicitar_emprestimo.html'">
+  <i>💳</i> <span>Empréstimo</span>
+</li>
+
+<li onclick="location.href='/status_emprestimos.html'">
+  <i>📄</i> <span>Status Empréstimos</span>
+</li>
+
+<li onclick="logout()">
+  <i>🚪</i> <span>Sair</span>
+</li>
+
+</ul>
+
 </div>
+
 <script>
-(function(){
-  const user = JSON.parse(localStorage.getItem('user')||'null');
-  const adminLinks = document.getElementById('adminLinks');
-  if(user && user.role==='financeiro'){
-    adminLinks.innerHTML = `
-      <a href="/admin/dashboard.html">⚙️ Admin Dashboard</a>
-      <a href="/admin/criar_colaborador.html">👤 Criar Colaborador</a>
-      <a href="/admin/alterar_recebiveis.html">🔄 Alterar Recebíveis</a>
-      <a href="/admin/alterar_emprestimos.html">🔁 Alterar Empréstimos</a>
-      <a href="/admin/lancar_recebiveis.html">➕ Lançar Recebíveis</a>
-`;
-  }
-})();
-function logout(){ localStorage.removeItem('user'); window.location = '/'; }
+function toggleSidebar() {
+  const sb = document.getElementById("menuColab");
+  const main = document.querySelector(".main");
+
+  sb.classList.toggle("collapsed");
+  main.classList.toggle("collapsed");
+}
 </script>
