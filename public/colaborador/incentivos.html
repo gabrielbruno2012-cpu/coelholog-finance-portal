@@ -406,5 +406,39 @@
       window.location = '/';
     }
   </script>
+  <script>
+const user = JSON.parse(localStorage.getItem('usuario'));
+const userId = user?.id;
+
+// ===== PONTOS DO COLABORADOR =====
+fetch(`/api/incentivos/pontos/${userId}`)
+  .then(r => r.json())
+  .then(data => {
+    if(!data) return;
+
+    document.querySelector(".inc-top-grid .inc-card:nth-child(1) .inc-card-value").innerHTML = 
+      `${data.points} pts`;
+  });
+
+// ===== CAMPANHAS ATIVAS =====
+fetch("/api/incentivos/campanhas")
+  .then(r => r.json())
+  .then(campanhas => {
+    if(!campanhas.length) return;
+
+    document.querySelector(".inc-pill").innerHTML =
+      `<span class='inc-pill-badge'></span> ${campanhas[0].title}`;
+  });
+
+// ===== SLA RECENTE =====
+fetch("/api/incentivos/sla")
+  .then(r => r.json())
+  .then(sla => {
+    if(!sla.length) return;
+
+    const s = sla[0].sla_percent;
+    document.querySelector(".inc-card:nth-child(3) .inc-card-value").innerHTML = `${s}%`;
+  });
+</script>
 </body>
 </html>
