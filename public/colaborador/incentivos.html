@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>CoelhoLog • Incentivos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* ====== ESTILOS ESPECÍFICOS DA TELA DE INCENTIVOS ====== */
+
+    .page-title {
+      font-size: 1.6rem;
+      margin-bottom: 4px;
+    }
+
+    .page-subtitle {
+      font-size: 0.95rem;
+      color: #9ca3af;
+      margin-bottom: 20px;
+    }
+
+    .inc-top-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-bottom: 22px;
+    }
+
+    .inc-card {
+      background: #020817;
+      border-radius: 14px;
+      padding: 14px 14px 12px;
+      border: 1px solid rgba(148,163,184,0.4);
+      box-shadow: 0 10px 26px rgba(0,0,0,0.45);
+      font-size: 0.85rem;
+    }
+
+    .inc-card-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+
+    .inc-card-value {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .inc-card-tag {
+      font-size: .8rem;
+      color: #9ca3af;
+      margin-top: 2px;
+    }
+
+    .inc-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .inc-box {
+      background: #020817;
+      border-radius: 14px;
+      padding: 14px;
+      border: 1px solid rgba(148,163,184,0.4);
+      box-shadow: 0 10px 26px rgba(0,0,0,0.45);
+      font-size: 0.9rem;
+    }
+
+    .inc-box h3 {
+      font-size: 1rem;
+      margin-bottom: 10px;
+    }
+
+    .inc-meta-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+      font-size: .85rem;
+    }
+
+    .inc-progress-bar {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(31,41,55,0.9);
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .inc-progress-fill {
+      height: 100%;
+      width: 62%; /* valor estático por enquanto */
+      border-radius: inherit;
+      background: linear-gradient(90deg,#f6c21b,#facc48);
+      box-shadow: 0 0 14px rgba(246,194,27,0.7);
+    }
+
+    .inc-meta-info {
+      font-size: .8rem;
+      color: #9ca3af;
+    }
+
+    .inc-meta-list {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0;
+      font-size: .85rem;
+    }
+
+    .inc-meta-list li {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .inc-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #4b5563;
+    }
+
+    .inc-dot.ok {
+      background: #22c55e;
+    }
+
+    .inc-dot.warn {
+      background: #f97316;
+    }
+
+    .inc-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: .72rem;
+      border: 1px solid rgba(148,163,184,0.7);
+      color: #e5e7eb;
+      gap: 6px;
+    }
+
+    .inc-pill-badge {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #facc15;
+    }
+
+    .inc-history-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      font-size: .85rem;
+    }
+
+    .inc-history-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px dashed rgba(55,65,81,0.9);
+    }
+
+    .inc-history-item:last-child {
+      border-bottom: none;
+    }
+
+    .inc-history-main {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .inc-history-title {
+      font-weight: 500;
+    }
+
+    .inc-history-meta {
+      font-size: .78rem;
+      color: #9ca3af;
+    }
+
+    .inc-history-value {
+      font-weight: 600;
+      color: #facc15;
+      font-size: .9rem;
+      white-space: nowrap;
+      margin-left: 12px;
+    }
+
+    .inc-ranking-list {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0;
+      font-size: .85rem;
+    }
+
+    .inc-ranking-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px dashed rgba(55,65,81,0.9);
+    }
+
+    .inc-ranking-item:last-child {
+      border-bottom: none;
+    }
+
+    .inc-ranking-pos {
+      font-weight: 600;
+      margin-right: 6px;
+      color: #facc15;
+    }
+
+    .inc-ranking-name {
+      color: #e5e7eb;
+    }
+
+    .inc-ranking-points {
+      font-weight: 500;
+      color: #9ca3af;
+      font-size: .8rem;
+    }
+
+    .inc-tip {
+      font-size: .8rem;
+      color: #9ca3af;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 960px) {
+      .inc-top-grid {
+        grid-template-columns: repeat(2, minmax(0,1fr));
+      }
+      .inc-layout {
+        grid-template-columns: minmax(0,1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .inc-top-grid {
+        grid-template-columns: minmax(0,1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- carrega o sidebar igual outras telas do colaborador -->
+  <div id="sidebar-container"></div>
+
+  <main class="main">
+    <div class="header-right">
+      <button class="btn" onclick="logout()">Logout</button>
+    </div>
+
+    <h1 class="page-title">Incentivos & Metas</h1>
+    <p class="page-subtitle">
+      Acompanhe sua pontuação, metas da semana e bônus estimados dentro da CoelhoLog.
+    </p>
+
+    <!-- CARDS RESUMO -->
+    <div class="inc-top-grid">
+      <div class="inc-card">
+        <div class="inc-card-label">Pontuação atual</div>
+        <div class="inc-card-value">1.280 pts</div>
+        <div class="inc-card-tag">Atualiza ao final de cada dia</div>
+      </div>
+
+      <div class="inc-card">
+        <div class="inc-card-label">Meta da semana</div>
+        <div class="inc-card-value">75%</div>
+        <div class="inc-card-tag">Você está perto de bater a meta</div>
+      </div>
+
+      <div class="inc-card">
+        <div class="inc-card-label">Entregas no prazo</div>
+        <div class="inc-card-value">96%</div>
+        <div class="inc-card-tag">Considerando os últimos 30 dias</div>
+      </div>
+
+      <div class="inc-card">
+        <div class="inc-card-label">Bônus estimado</div>
+        <div class="inc-card-value">R$ 220,00</div>
+        <div class="inc-card-tag">Se manter a performance atual</div>
+      </div>
+    </div>
+
+    <!-- LAYOUT PRINCIPAL -->
+    <div class="inc-layout">
+      <!-- META DA SEMANA -->
+      <section class="inc-box">
+        <div class="inc-meta-header">
+          <h3>Meta desta semana</h3>
+          <span class="inc-pill">
+            <span class="inc-pill-badge"></span>
+            Semana 01–07
+          </span>
+        </div>
+
+        <div class="inc-progress-bar">
+          <div class="inc-progress-fill"></div>
+        </div>
+        <div class="inc-meta-info">
+          62 de 100 entregas válidas • prazo médio: 96% no horário
+        </div>
+
+        <ul class="inc-meta-list">
+          <li>
+            <span class="inc-dot ok"></span>
+            <span>Manter <strong>&gt; 95% entregas no prazo</strong></span>
+          </li>
+          <li>
+            <span class="inc-dot ok"></span>
+            <span>Zero incidentes críticos registrados</span>
+          </li>
+          <li>
+            <span class="inc-dot warn"></span>
+            <span>Comprovação de entrega em foto em todas as rotas</span>
+          </li>
+        </ul>
+      </section>
+
+      <!-- HISTÓRICO/BÔNUS -->
+      <section class="inc-box">
+        <h3>Histórico de bônus</h3>
+        <ul class="inc-history-list">
+          <li class="inc-history-item">
+            <div class="inc-history-main">
+              <span class="inc-history-title">Bônus de performance semanal</span>
+              <span class="inc-history-meta">Semana 24 • 94% no prazo • 118 entregas</span>
+            </div>
+            <span class="inc-history-value">R$ 180,00</span>
+          </li>
+          <li class="inc-history-item">
+            <div class="inc-history-main">
+              <span class="inc-history-title">Campanha &quot;Zero Ocorrência&quot;</span>
+              <span class="inc-history-meta">30 dias sem incidentes críticos</span>
+            </div>
+            <span class="inc-history-value">R$ 120,00</span>
+          </li>
+          <li class="inc-history-item">
+            <div class="inc-history-main">
+              <span class="inc-history-title">Bônus extra de rota</span>
+              <span class="inc-history-meta">Cobertura de rota emergencial</span>
+            </div>
+            <span class="inc-history-value">R$ 80,00</span>
+          </li>
+        </ul>
+
+        <p class="inc-tip">
+          Os valores são ilustrativos. Em breve, essa área será conectada ao seu histórico real de pagamentos.
+        </p>
+      </section>
+    </div>
+
+    <!-- RANKING -->
+    <section class="inc-box">
+      <h3>Ranking CoelhoLog (visualização rápida)</h3>
+      <ul class="inc-ranking-list">
+        <li class="inc-ranking-item">
+          <div>
+            <span class="inc-ranking-pos">#1</span>
+            <span class="inc-ranking-name">Você</span>
+          </div>
+          <span class="inc-ranking-points">1.280 pts</span>
+        </li>
+        <li class="inc-ranking-item">
+          <div>
+            <span class="inc-ranking-pos">#2</span>
+            <span class="inc-ranking-name">Ana S.</span>
+          </div>
+          <span class="inc-ranking-points">1.190 pts</span>
+        </li>
+        <li class="inc-ranking-item">
+          <div>
+            <span class="inc-ranking-pos">#3</span>
+            <span class="inc-ranking-name">Carlos R.</span>
+          </div>
+          <span class="inc-ranking-points">1.040 pts</span>
+        </li>
+      </ul>
+
+      <p class="inc-tip">
+        Em uma próxima etapa, este ranking será alimentado com dados reais da produção
+        (entregas, pontualidade, incidentes, etc).
+      </p>
+    </section>
+
+  </main>
+
+  <script>
+    // carrega sidebar igual às outras telas do colaborador
+    fetch('/components/sidebar.html')
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById('sidebar-container').innerHTML = html;
+      });
+
+    function logout(){
+      localStorage.removeItem('user');
+      localStorage.removeItem('usuario');
+      window.location = '/';
+    }
+  </script>
+</body>
+</html>
