@@ -658,6 +658,77 @@ app.get('/api/campanhas/sla/listar', (req, res) => {
   });
 });
 
+// ======================= INCENTIVOS =========================
+
+// Lista campanhas ativas
+app.get("/api/incentivos/campanhas", (req, res) => {
+  db.all("SELECT * FROM incentives_campaigns ORDER BY created_at DESC", [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: "Erro ao carregar campanhas" });
+    }
+    res.json(rows);
+  });
+});
+
+// Pontos do colaborador
+app.get("/api/incentivos/pontos/:id", (req, res) => {
+  const { id } = req.params;
+  db.get("SELECT * FROM incentives_points WHERE courier_id = ?", [id], (err, row) => {
+    if (err) return res.status(500).json({ error: "Erro ao carregar pontos" });
+    res.json(row || { courier_id: id, points: 0, level: "Bronze" });
+  });
+});
+
+// Histórico SLA
+app.get("/api/incentivos/sla", (req, res) => {
+  db.all("SELECT * FROM sla_updates ORDER BY created_at DESC LIMIT 20", [], (err, rows) => {
+    if (err) return res.status(500).json({ error: "Erro ao carregar SLA" });
+    res.json(rows);
+  });
+});
+
+// Registrar pontos
+app.post("/api/incentivos/add", (req, res) => {
+  const { courier_id, points, campaign_id } = req.body;
+
+  db.run(
+    "INSERT INTO incentives_points (courier_id, points, campaign_id) VALUES (?,?,?)",
+    [courier_id, points, campaign_id],
+    function (err) {
+      if (err) return res.status(500).json({ error: "Erro ao registrar pontos" });
+      res.json({ success: true, id: this.lastID });
+    }
+  );
+});
+
+// Registrar SLA
+app.post("/api/sla/update", (req, res) => {
+  const { sla_percent } = req.body;
+
+  db.run(
+    "INSERT INTO sla_updates (sla_percent) VALUES (?)",
+    [sla_percent],
+    function (err) {
+      if (err) return res.status(500).json({ error: "Erro ao atualizar SLA" });
+      res.json({ success: true });
+    }
+  );
+});
+
+// Registrar incidente
+app.post("/api/incidentes", (req, res) => {
+  const { courier_id, type, description } = req.body;
+
+  db.run(
+    "INSERT INTO incidents (courier_id, type, description) VALUES (?,?,?)",
+    [courier_id, type, description],
+    function (err) {
+      if (err) return res.status(500).json({ error: "Erro ao registrar incidente" });
+      res.json({ success: true });
+    }
+  );
+});
+
 
 // ======================================
 // START SERVER
