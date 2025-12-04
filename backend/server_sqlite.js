@@ -729,6 +729,20 @@ app.post("/api/incidentes", (req, res) => {
   );
 });
 
+// Histórico de pontos do colaborador
+app.get("/api/incentivos/historico/:id", (req, res) => {
+  const { id } = req.params;
+
+  db.all(
+    "SELECT * FROM incentives_points WHERE courier_id = ? ORDER BY created_at DESC",
+    [id],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: "Erro ao buscar histórico" });
+      res.json(rows);
+    }
+  );
+});
+
 
 // ======================================
 // START SERVER
