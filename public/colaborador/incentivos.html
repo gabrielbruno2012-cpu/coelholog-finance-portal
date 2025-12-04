@@ -1,444 +1,199 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <title>CoelhoLog • Incentivos</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="/css/style.css">
-  <style>
-    /* ====== ESTILOS ESPECÍFICOS DA TELA DE INCENTIVOS ====== */
+    <meta charset="UTF-8">
+    <title>Incentivos | CoelhoLog</title>
+    <link rel="stylesheet" href="styles.css">
 
-    .page-title {
-      font-size: 1.6rem;
-      margin-bottom: 4px;
-    }
+    <style>
+        body {
+            background: #061b34;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+        }
 
-    .page-subtitle {
-      font-size: 0.95rem;
-      color: #9ca3af;
-      margin-bottom: 20px;
-    }
+        .inc-container {
+            padding: 30px;
+            max-width: 1200px;
+            margin: auto;
+        }
 
-    .inc-top-grid {
-      display: grid;
-      gap: 14px;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      margin-bottom: 22px;
-    }
+        .inc-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
 
-    .inc-card {
-      background: #020817;
-      border-radius: 14px;
-      padding: 14px 14px 12px;
-      border: 1px solid rgba(148,163,184,0.4);
-      box-shadow: 0 10px 26px rgba(0,0,0,0.45);
-      font-size: 0.85rem;
-    }
+        .inc-top-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
 
-    .inc-card-label {
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: #9ca3af;
-      margin-bottom: 4px;
-    }
+        .inc-card {
+            background: #0d2a4d;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0px 6px 20px rgba(0,0,0,0.2);
+        }
 
-    .inc-card-value {
-      font-size: 1.3rem;
-      font-weight: 700;
-    }
+        .inc-card-title {
+            font-size: 16px;
+            opacity: .8;
+        }
 
-    .inc-card-tag {
-      font-size: .8rem;
-      color: #9ca3af;
-      margin-top: 2px;
-    }
+        .inc-card-value {
+            margin-top: 10px;
+            font-size: 32px;
+            font-weight: bold;
+        }
 
-    .inc-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-      gap: 18px;
-      margin-bottom: 18px;
-    }
+        .inc-progress {
+            margin-top: 15px;
+            width: 100%;
+            height: 10px;
+            background: #10345d;
+            border-radius: 10px;
+            overflow: hidden;
+        }
 
-    .inc-box {
-      background: #020817;
-      border-radius: 14px;
-      padding: 14px;
-      border: 1px solid rgba(148,163,184,0.4);
-      box-shadow: 0 10px 26px rgba(0,0,0,0.45);
-      font-size: 0.9rem;
-    }
+        .inc-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: #ffd000;
+            transition: .6s;
+        }
 
-    .inc-box h3 {
-      font-size: 1rem;
-      margin-bottom: 10px;
-    }
+        .inc-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+            background: #ffd000;
+            padding: 8px 14px;
+            border-radius: 50px;
+            font-size: 14px;
+            color: #000;
+            font-weight: 600;
+        }
 
-    .inc-meta-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 8px;
-      font-size: .85rem;
-    }
+        .inc-history {
+            margin-top: 35px;
+            background: #0d2a4d;
+            padding: 20px;
+            border-radius: 12px;
+        }
 
-    .inc-progress-bar {
-      width: 100%;
-      height: 8px;
-      border-radius: 999px;
-      background: rgba(31,41,55,0.9);
-      overflow: hidden;
-      margin-bottom: 6px;
-    }
-
-    .inc-progress-fill {
-      height: 100%;
-      width: 62%; /* valor estático por enquanto */
-      border-radius: inherit;
-      background: linear-gradient(90deg,#f6c21b,#facc48);
-      box-shadow: 0 0 14px rgba(246,194,27,0.7);
-    }
-
-    .inc-meta-info {
-      font-size: .8rem;
-      color: #9ca3af;
-    }
-
-    .inc-meta-list {
-      list-style: none;
-      padding: 0;
-      margin: 10px 0 0;
-      font-size: .85rem;
-    }
-
-    .inc-meta-list li {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 6px;
-    }
-
-    .inc-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      background: #4b5563;
-    }
-
-    .inc-dot.ok {
-      background: #22c55e;
-    }
-
-    .inc-dot.warn {
-      background: #f97316;
-    }
-
-    .inc-pill {
-      display: inline-flex;
-      align-items: center;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: .72rem;
-      border: 1px solid rgba(148,163,184,0.7);
-      color: #e5e7eb;
-      gap: 6px;
-    }
-
-    .inc-pill-badge {
-      width: 6px;
-      height: 6px;
-      border-radius: 999px;
-      background: #facc15;
-    }
-
-    .inc-history-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      font-size: .85rem;
-    }
-
-    .inc-history-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 6px 0;
-      border-bottom: 1px dashed rgba(55,65,81,0.9);
-    }
-
-    .inc-history-item:last-child {
-      border-bottom: none;
-    }
-
-    .inc-history-main {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .inc-history-title {
-      font-weight: 500;
-    }
-
-    .inc-history-meta {
-      font-size: .78rem;
-      color: #9ca3af;
-    }
-
-    .inc-history-value {
-      font-weight: 600;
-      color: #facc15;
-      font-size: .9rem;
-      white-space: nowrap;
-      margin-left: 12px;
-    }
-
-    .inc-ranking-list {
-      list-style: none;
-      padding: 0;
-      margin: 10px 0 0;
-      font-size: .85rem;
-    }
-
-    .inc-ranking-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 5px 0;
-      border-bottom: 1px dashed rgba(55,65,81,0.9);
-    }
-
-    .inc-ranking-item:last-child {
-      border-bottom: none;
-    }
-
-    .inc-ranking-pos {
-      font-weight: 600;
-      margin-right: 6px;
-      color: #facc15;
-    }
-
-    .inc-ranking-name {
-      color: #e5e7eb;
-    }
-
-    .inc-ranking-points {
-      font-weight: 500;
-      color: #9ca3af;
-      font-size: .8rem;
-    }
-
-    .inc-tip {
-      font-size: .8rem;
-      color: #9ca3af;
-      margin-top: 8px;
-    }
-
-    @media (max-width: 960px) {
-      .inc-top-grid {
-        grid-template-columns: repeat(2, minmax(0,1fr));
-      }
-      .inc-layout {
-        grid-template-columns: minmax(0,1fr);
-      }
-    }
-
-    @media (max-width: 640px) {
-      .inc-top-grid {
-        grid-template-columns: minmax(0,1fr);
-      }
-    }
-  </style>
+        .history-row {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+    </style>
 </head>
 <body>
-  <!-- carrega o sidebar igual outras telas do colaborador -->
-  <div id="sidebar-container"></div>
 
-  <main class="main">
-    <div class="header-right">
-      <button class="btn" onclick="logout()">Logout</button>
-    </div>
+<div class="inc-container">
 
-    <h1 class="page-title">Incentivos & Metas</h1>
-    <p class="page-subtitle">
-      Acompanhe sua pontuação, metas da semana e bônus estimados dentro da CoelhoLog.
-    </p>
+    <div class="inc-title">Incentivos do Colaborador</div>
 
-    <!-- CARDS RESUMO -->
+    <!-- TOP CARDS -->
     <div class="inc-top-grid">
-      <div class="inc-card">
-        <div class="inc-card-label">Pontuação atual</div>
-        <div class="inc-card-value">1.280 pts</div>
-        <div class="inc-card-tag">Atualiza ao final de cada dia</div>
-      </div>
+        
+        <div class="inc-card">
+            <div class="inc-card-title">Total de Pontos</div>
+            <div id="pontosValue" class="inc-card-value">0 pts</div>
+            <div class="inc-progress">
+                <div id="progressBar" class="inc-progress-bar"></div>
+            </div>
+        </div>
 
-      <div class="inc-card">
-        <div class="inc-card-label">Meta da semana</div>
-        <div class="inc-card-value">75%</div>
-        <div class="inc-card-tag">Você está perto de bater a meta</div>
-      </div>
+        <div class="inc-card">
+            <div class="inc-card-title">Meta Mensal</div>
+            <div id="metaValue" class="inc-card-value">1000 pts</div>
+            <div id="campaignName" class="inc-pill"><span class="inc-pill-badge"></span>Aguardando...</div>
+        </div>
 
-      <div class="inc-card">
-        <div class="inc-card-label">Entregas no prazo</div>
-        <div class="inc-card-value">96%</div>
-        <div class="inc-card-tag">Considerando os últimos 30 dias</div>
-      </div>
-
-      <div class="inc-card">
-        <div class="inc-card-label">Bônus estimado</div>
-        <div class="inc-card-value">R$ 220,00</div>
-        <div class="inc-card-tag">Se manter a performance atual</div>
-      </div>
+        <div class="inc-card">
+            <div class="inc-card-title">SLA do Período</div>
+            <div id="slaValue" class="inc-card-value">--%</div>
+        </div>
     </div>
 
-    <!-- LAYOUT PRINCIPAL -->
-    <div class="inc-layout">
-      <!-- META DA SEMANA -->
-      <section class="inc-box">
-        <div class="inc-meta-header">
-          <h3>Meta desta semana</h3>
-          <span class="inc-pill">
-            <span class="inc-pill-badge"></span>
-            Semana 01–07
-          </span>
-        </div>
-
-        <div class="inc-progress-bar">
-          <div class="inc-progress-fill"></div>
-        </div>
-        <div class="inc-meta-info">
-          62 de 100 entregas válidas • prazo médio: 96% no horário
-        </div>
-
-        <ul class="inc-meta-list">
-          <li>
-            <span class="inc-dot ok"></span>
-            <span>Manter <strong>&gt; 95% entregas no prazo</strong></span>
-          </li>
-          <li>
-            <span class="inc-dot ok"></span>
-            <span>Zero incidentes críticos registrados</span>
-          </li>
-          <li>
-            <span class="inc-dot warn"></span>
-            <span>Comprovação de entrega em foto em todas as rotas</span>
-          </li>
-        </ul>
-      </section>
-
-      <!-- HISTÓRICO/BÔNUS -->
-      <section class="inc-box">
-        <h3>Histórico de bônus</h3>
-        <ul class="inc-history-list">
-          <li class="inc-history-item">
-            <div class="inc-history-main">
-              <span class="inc-history-title">Bônus de performance semanal</span>
-              <span class="inc-history-meta">Semana 24 • 94% no prazo • 118 entregas</span>
-            </div>
-            <span class="inc-history-value">R$ 180,00</span>
-          </li>
-          <li class="inc-history-item">
-            <div class="inc-history-main">
-              <span class="inc-history-title">Campanha &quot;Zero Ocorrência&quot;</span>
-              <span class="inc-history-meta">30 dias sem incidentes críticos</span>
-            </div>
-            <span class="inc-history-value">R$ 120,00</span>
-          </li>
-          <li class="inc-history-item">
-            <div class="inc-history-main">
-              <span class="inc-history-title">Bônus extra de rota</span>
-              <span class="inc-history-meta">Cobertura de rota emergencial</span>
-            </div>
-            <span class="inc-history-value">R$ 80,00</span>
-          </li>
-        </ul>
-
-        <p class="inc-tip">
-          Os valores são ilustrativos. Em breve, essa área será conectada ao seu histórico real de pagamentos.
-        </p>
-      </section>
+    <!-- HISTÓRICO -->
+    <div class="inc-history">
+        <h3>Histórico de Pontos</h3>
+        <div id="historyList"></div>
     </div>
 
-    <!-- RANKING -->
-    <section class="inc-box">
-      <h3>Ranking CoelhoLog (visualização rápida)</h3>
-      <ul class="inc-ranking-list">
-        <li class="inc-ranking-item">
-          <div>
-            <span class="inc-ranking-pos">#1</span>
-            <span class="inc-ranking-name">Você</span>
-          </div>
-          <span class="inc-ranking-points">1.280 pts</span>
-        </li>
-        <li class="inc-ranking-item">
-          <div>
-            <span class="inc-ranking-pos">#2</span>
-            <span class="inc-ranking-name">Ana S.</span>
-          </div>
-          <span class="inc-ranking-points">1.190 pts</span>
-        </li>
-        <li class="inc-ranking-item">
-          <div>
-            <span class="inc-ranking-pos">#3</span>
-            <span class="inc-ranking-name">Carlos R.</span>
-          </div>
-          <span class="inc-ranking-points">1.040 pts</span>
-        </li>
-      </ul>
+</div>
 
-      <p class="inc-tip">
-        Em uma próxima etapa, este ranking será alimentado com dados reais da produção
-        (entregas, pontualidade, incidentes, etc).
-      </p>
-    </section>
-
-  </main>
-
-  <script>
-    // carrega sidebar igual às outras telas do colaborador
-    fetch('/components/sidebar.html')
-      .then(r => r.text())
-      .then(html => {
-        document.getElementById('sidebar-container').innerHTML = html;
-      });
-
-    function logout(){
-      localStorage.removeItem('user');
-      localStorage.removeItem('usuario');
-      window.location = '/';
-    }
-  </script>
-  <script>
-const user = JSON.parse(localStorage.getItem('usuario'));
+<script>
+const user = JSON.parse(localStorage.getItem("usuario"));
 const userId = user?.id;
 
-// ===== PONTOS DO COLABORADOR =====
+// =========================================================
+//   1. CARREGA PONTOS DO COLABORADOR
+// =========================================================
 fetch(`/api/incentivos/pontos/${userId}`)
-  .then(r => r.json())
-  .then(data => {
-    if(!data) return;
+    .then(r => r.json())
+    .then(data => {
+        const pontos = data?.points || 0;
+        const meta = 1000; // meta fixa ou dinâmica futuramente
 
-    document.querySelector(".inc-top-grid .inc-card:nth-child(1) .inc-card-value").innerHTML = 
-      `${data.points} pts`;
-  });
+        document.getElementById("pontosValue").innerHTML = `${pontos} pts`;
+        document.getElementById("metaValue").innerHTML = `${meta} pts`;
 
-// ===== CAMPANHAS ATIVAS =====
-fetch("/api/incentivos/campanhas")
-  .then(r => r.json())
-  .then(campanhas => {
-    if(!campanhas.length) return;
+        const progress = Math.min((pontos / meta) * 100, 100);
+        document.getElementById("progressBar").style.width = progress + "%";
+    });
 
-    document.querySelector(".inc-pill").innerHTML =
-      `<span class='inc-pill-badge'></span> ${campanhas[0].title}`;
-  });
 
-// ===== SLA RECENTE =====
-fetch("/api/incentivos/sla")
-  .then(r => r.json())
-  .then(sla => {
-    if(!sla.length) return;
+// =========================================================
+//   2. CARREGA CAMPANHAS ATIVAS
+// =========================================================
+fetch(`/api/incentivos/campanhas`)
+    .then(r => r.json())
+    .then(campanhas => {
+        if (!campanhas.length) return;
+        document.getElementById("campaignName").innerHTML =
+            `<span class='inc-pill-badge'></span> ${campanhas[0].title}`;
+    });
 
-    const s = sla[0].sla_percent;
-    document.querySelector(".inc-card:nth-child(3) .inc-card-value").innerHTML = `${s}%`;
-  });
+
+// =========================================================
+//   3. SLA ATUAL DO PERÍODO
+// =========================================================
+fetch(`/api/incentivos/sla`)
+    .then(r => r.json())
+    .then(s => {
+        if (!s?.length) return;
+        document.getElementById("slaValue").innerHTML = s[0].sla_percent + "%";
+    });
+
+
+// =========================================================
+//   4. HISTÓRICO DO COLABORADOR
+// =========================================================
+fetch(`/api/incentivos/historico/${userId}`)
+    .then(r => r.json())
+    .then(rows => {
+        const historyDiv = document.getElementById("historyList");
+        historyDiv.innerHTML = "";
+
+        if (!rows.length) {
+            historyDiv.innerHTML = "<p>Nenhum histórico encontrado.</p>";
+            return;
+        }
+
+        rows.forEach(h => {
+            historyDiv.innerHTML += `
+                <div class="history-row">
+                    <b>+${h.points} pts</b> — ${h.description} <br>
+                    <span style="opacity:.6">${h.created_at}</span>
+                </div>`;
+        });
+    });
 </script>
+
 </body>
 </html>
