@@ -552,6 +552,111 @@ app.get("/api/producao/pendentes", (req, res) => {
     });
 });
 
+app.post('/api/campanhas/criar', (req, res) => {
+  const { nome, descricao, periodo_inicio, periodo_fim, meta_sla, tema } = req.body;
+
+  if (!nome || !periodo_inicio || !periodo_fim) {
+    return res.status(400).json({ erro: "Campos obrigatórios não preenchidos." });
+  }
+
+  const sql = `
+    INSERT INTO campanhas 
+    (nome, descricao, periodo_inicio, periodo_fim, meta_sla, tema) 
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+
+  db.run(sql, [nome, descricao, periodo_inicio, periodo_fim, meta_sla, tema], function (err) {
+    if (err) return res.status(500).json({ erro: "Erro ao criar campanha." });
+    res.json({ ok: true, campanha_id: this.lastID });
+  });
+});
+
+app.get('/api/campanhas/listar', (req, res) => {
+  db.all("SELECT * FROM campanhas ORDER BY periodo_inicio DESC", [], (err, rows) => {
+    if (err) return res.status(500).json({ erro: "Erro ao listar campanhas." });
+    res.json(rows);
+  });
+});
+
+app.post('/api/campanhas/status', (req, res) => {
+  const { campanha_id, ativa } = req.body;
+
+  db.run("UPDATE campanhas SET ativa = ? WHERE id = ?", [ativa, campanha_id], (err) => {
+    if (err) return res.status(500).json({ erro: "Erro ao atualizar campanha." });
+    res.json({ ok: true });
+  });
+});
+
+app.post('/api/campanhas/pontos/salvar', (req, res) => {
+  const { campanha_id, usuario_id, semana, pontos, bonus_estimado, sla_semana, observacao } = req.body;
+
+  if (!campanha_id || !usuario_id || !semana) {
+    return res.status(400).json({ erro: "Campos obrigatórios não preenchidos." });
+  }
+
+  const sql = `
+    INSERT INTO campanhas_pontos_semanais
+    (campanha_id, usuario_id, semana, pontos, bonus_estimado, sla_semana, observacao)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  db.run(sql, [campanha_id, usuario_id, semana, pontos, bonus_estimado, sla_semana, observacao], function (err) {
+    if (err) return res.status(500).json({ erro: "Erro ao registrar pontos." });
+    res.json({ ok: true, id: this.lastID });
+  });
+});
+
+app.get('/api/campanhas/pontos/listar', (req, res) => {
+  const { campanha_id } = req.query;
+
+  db.all(`
+    SELECT cps.*, u.nome as colaborador 
+    FROM campanhas_pontos_semanais cps
+    LEFT JOIN usuarios u ON u.id = cps.usuario_id
+    WHERE cps.campanha_id = ?
+    ORDER BY cps.semana ASC
+  `, [campanha_id], (err, rows) => {
+    if (err) return res.status(500).json({ erro: "Erro ao listar pontos." });
+    res.json(rows);
+  });
+});
+
+app.post('/api/campanhas/sla/salvar', (req, res) => {
+  const { campanha_id, periodo_ref, total_entregas, entregas_no_prazo } = req.body;
+
+  if (!campanha_id || !periodo_ref) {
+    return res.status(400).json({ erro: "Campos obrigatórios não preenchidos." });
+  }
+
+  const sla = total_entregas > 0 
+    ? (entregas_no_prazo / total_entregas) * 100 
+    : 0;
+
+  const sql = `
+    INSERT INTO campanhas_sla_geral
+    (campanha_id, periodo_ref, total_entregas, entregas_no_prazo, sla_percentual)
+    VALUES (?, ?, ?, ?, ?)
+  `;
+
+  db.run(sql, [campanha_id, periodo_ref, total_entregas, entregas_no_prazo, sla], function (err) {
+    if (err) return res.status(500).json({ erro: "Erro ao registrar SLA." });
+    res.json({ ok: true, id: this.lastID });
+  });
+});
+
+app.get('/api/campanhas/sla/listar', (req, res) => {
+  const { campanha_id } = req.query;
+
+  db.all(`
+    SELECT * 
+    FROM campanhas_sla_geral
+    WHERE campanha_id = ?
+    ORDER BY atualizado_em DESC
+  `, [campanha_id], (err, rows) => {
+    if (err) return res.status(500).json({ erro: "Erro ao listar SLA." });
+    res.json(rows);
+  });
+});
 
 
 // ======================================
