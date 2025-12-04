@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Admin • Campanhas e Pontos</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+/* --- ESTILO DA PÁGINA --- */
+.page-title { font-size: 1.6rem; margin-bottom: 4px; }
+.page-subtitle { font-size: .95rem; color: #9ca3af; margin-bottom: 20px; }
+
+.section-box {
+  background: #020817;
+  border-radius: 14px;
+  padding: 16px;
+  border: 1px solid rgba(148,163,184,0.3);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.35);
+  margin-bottom: 24px;
+}
+
+.section-box h3 {
+  margin: 0 0 12px;
+  font-size: 1.2rem;
+}
+
+.input-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.input-row input,
+.input-row select,
+.input-row textarea {
+  flex: 1;
+  min-width: 180px;
+  padding: 10px;
+  background:#0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #fff;
+}
+
+.btn-save {
+  background: #f6c21b;
+  color: #1e293b;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.table-custom {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+.table-custom th,
+.table-custom td {
+  border-bottom: 1px solid rgba(148,163,184,0.2);
+  padding: 10px;
+  text-align: left;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: .75rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.status-active { background:#22c55e33; color:#22c55e; }
+.status-closed { background:#ef444433; color:#ef4444; }
+
+.ranking-box {
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:8px;
+}
+
+.ranking-item {
+  display:flex;
+  justify-content:space-between;
+  padding:6px;
+  border-bottom:1px dashed rgba(148,163,184,0.2);
+}
+</style>
+</head>
+<body>
+
+<div id="sidebar-container"></div>
+
+<main class="main">
+  <div class="header-right">
+    <button class="btn" onclick="logout()">Logout</button>
+  </div>
+
+  <h1 class="page-title">Campanhas & Pontos</h1>
+  <p class="page-subtitle">Gerencie campanhas, metas, SLA e pontuação semanal dos colaboradores.</p>
+
+  <!-- ======================= -->
+  <!-- 1. CRIAR CAMPANHA       -->
+  <!-- ======================= -->
+  <div class="section-box">
+    <h3>Criar nova campanha</h3>
+
+    <div class="input-row">
+      <input id="camp_nome" placeholder="Nome da campanha (Ex: Operação 99%)">
+      <input id="camp_inicio" type="date">
+      <input id="camp_fim" type="date">
+    </div>
+
+    <div class="input-row">
+      <input id="camp_meta_sla" type="number" step="0.1" placeholder="Meta SLA (%)">
+      <input id="camp_tema" placeholder="Tema (ex: ouro, entrega-perfeita)">
+    </div>
+
+    <textarea id="camp_descricao" placeholder="Descrição da campanha (opcional)"></textarea>
+
+    <button class="btn-save" onclick="criarCampanha()">Criar campanha</button>
+  </div>
+
+  <!-- ======================= -->
+  <!-- 2. LISTAR CAMPANHAS     -->
+  <!-- ======================= -->
+  <div class="section-box">
+    <h3>Campanhas cadastradas</h3>
+    <table class="table-custom" id="tabela-campanhas">
+      <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Período</th>
+        <th>Status</th>
+        <th>Ação</th>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ======================= -->
+  <!-- 3. SLAs DA CAMPANHA     -->
+  <!-- ======================= -->
+  <div class="section-box">
+    <h3>Registrar SLA da campanha</h3>
+
+    <div class="input-row">
+      <select id="sla_campanha_select"></select>
+      <input id="sla_periodo_ref" placeholder="Período (ex: Semana 1)">
+      <input id="sla_total" type="number" placeholder="Total de entregas">
+      <input id="sla_prazo" type="number" placeholder="Entregas no prazo">
+    </div>
+
+    <button class="btn-save" onclick="salvarSLA()">Salvar SLA</button>
+  </div>
+
+  <!-- ======================= -->
+  <!-- 4. REGISTRO DE PONTOS   -->
+  <!-- ======================= -->
+  <div class="section-box">
+    <h3>Registro semanal de pontos</h3>
+
+    <div class="input-row">
+      <select id="pts_campanha_select"></select>
+      <input id="pts_usuario_id" type="number" placeholder="ID do colaborador">
+      <input id="pts_semana" placeholder="Semana (Ex: 2025-W05)">
+    </div>
+
+    <div class="input-row">
+      <input id="pts_valor" type="number" placeholder="Pontos da semana">
+      <input id="pts_bonus" type="number" placeholder="Bônus estimado">
+      <input id="pts_sla" type="number" placeholder="SLA da semana (%)">
+    </div>
+
+    <textarea id="pts_observacao" placeholder="Observações"></textarea>
+
+    <button class="btn-save" onclick="salvarPontos()">Salvar registro de pontos</button>
+  </div>
+
+</main>
+
+<script>
+// --- CARREGA SIDEBAR ---
+fetch('/components/sidebar_admin.html')
+  .then(r => r.text())
+  .then(html => document.getElementById('sidebar-container').innerHTML = html);
+
+// --- LOGOUT ---
+function logout(){
+  localStorage.removeItem('usuario');
+  window.location='/';
+}
+
+// ==============================
+// 1. CRIAR CAMPANHA
+// ==============================
+async function criarCampanha(){
+  const body = {
+    nome: camp_nome.value,
+    descricao: camp_descricao.value,
+    periodo_inicio: camp_inicio.value,
+    periodo_fim: camp_fim.value,
+    meta_sla: camp_meta_sla.value,
+    tema: camp_tema.value
+  };
+
+  const r = await fetch('/api/campanhas/criar',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+
+  const data = await r.json();
+  alert("Campanha criada!");
+  carregarCampanhas();
+  carregarSelects();
+}
+
+// ==============================
+// 2. LISTAR CAMPANHAS
+// ==============================
+async function carregarCampanhas(){
+  const r = await fetch('/api/campanhas/listar');
+  const lista = await r.json();
+
+  const tbl = document.getElementById('tabela-campanhas');
+  tbl.innerHTML = `
+  <tr>
+    <th>ID</th>
+    <th>Nome</th>
+    <th>Período</th>
+    <th>Status</th>
+    <th>Ação</th>
+  </tr>`;
+
+  lista.forEach(c => {
+    tbl.innerHTML += `
+      <tr>
+        <td>${c.id}</td>
+        <td>${c.nome}</td>
+        <td>${c.periodo_inicio} até ${c.periodo_fim}</td>
+        <td>
+          <span class="status-badge ${c.ativa ? 'status-active' : 'status-closed'}">
+            ${c.ativa ? 'Ativa' : 'Encerrada'}
+          </span>
+        </td>
+        <td>
+          <button onclick="toggleStatus(${c.id}, ${c.ativa ? 0 : 1})">
+            ${c.ativa ? 'Encerrar' : 'Ativar'}
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+async function toggleStatus(id, nova){
+  await fetch('/api/campanhas/status',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ campanha_id:id, ativa:nova })
+  });
+  carregarCampanhas();
+  carregarSelects();
+}
+
+// ==============================
+// 3. SLAs
+// ==============================
+async function salvarSLA(){
+  const body = {
+    campanha_id: sla_campanha_select.value,
+    periodo_ref: sla_periodo_ref.value,
+    total_entregas: sla_total.value,
+    entregas_no_prazo: sla_prazo.value
+  };
+
+  await fetch('/api/campanhas/sla/salvar',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+
+  alert("SLA registrado!");
+}
+
+// ==============================
+// 4. PONTOS
+// ==============================
+async function salvarPontos(){
+  const body = {
+    campanha_id: pts_campanha_select.value,
+    usuario_id: pts_usuario_id.value,
+    semana: pts_semana.value,
+    pontos: pts_valor.value,
+    bonus_estimado: pts_bonus.value,
+    sla_semana: pts_sla.value,
+    observacao: pts_observacao.value
+  };
+
+  await fetch('/api/campanhas/pontos/salvar',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+
+  alert("Registro de pontos salvo!");
+}
+
+// ==============================
+// CARREGAR SELECTS
+// ==============================
+async function carregarSelects(){
+  const r = await fetch('/api/campanhas/listar');
+  const lista = await r.json();
+
+  // SLAs
+  sla_campanha_select.innerHTML = "";
+  // Pontos semanais
+  pts_campanha_select.innerHTML = "";
+
+  lista.forEach(c => {
+    sla_campanha_select.innerHTML += 
+      `<option value="${c.id}">${c.nome}</option>`;
+    pts_campanha_select.innerHTML += 
+      `<option value="${c.id}">${c.nome}</option>`;
+  });
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  carregarCampanhas();
+  carregarSelects();
+});
+</script>
+
+</body>
+</html>
