@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Registrar Pontos</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div id="sidebar-container"></div>
+<main class="main">
+
+<h1>Registrar Pontos</h1>
+
+<div class="card">
+
+  <label>Campanha Ativa</label>
+  <select id="campanha"></select>
+
+  <label>Colaborador</label>
+  <select id="usuario"></select>
+
+  <label>Pontos</label>
+  <input type="number" id="pontos">
+
+  <label>Motivo</label>
+  <input type="text" id="motivo">
+
+  <button class="btn" onclick="registrarPontos()">Registrar Pontos</button>
+
+</div>
+
+</main>
+
+<script>
+fetch('/components/sidebar_admin.html')
+  .then(r=>r.text())
+  .then(html=>document.getElementById("sidebar-container").innerHTML = html);
+
+async function carregarCampanhaAtiva(){
+  const res = await fetch("/api/campanhas/ativa");
+  const c = await res.json();
+  campanha.innerHTML = `<option value="${c.id}">${c.nome}</option>`;
+}
+
+async function carregarUsuarios(){
+  const res = await fetch("/api/usuarios/listar");
+  const lista = await res.json();
+
+  usuario.innerHTML = "";
+  lista.forEach(u=>{
+    usuario.innerHTML += `<option value="${u.id}">${u.nome}</option>`;
+  });
+}
+
+async function registrarPontos(){
+  const payload = {
+    courier_id: usuario.value,
+    campanha_id: campanha.value,
+    pontos: pontos.value,
+    motivo: motivo.value
+  };
+
+  await fetch("/api/incentivos/pontos/registrar", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  alert("Pontos registrados!");
+}
+
+carregarCampanhaAtiva();
+carregarUsuarios();
+</script>
+
+</body>
+</html>
