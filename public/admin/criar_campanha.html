@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Criar Campanha</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div id="sidebar-container"></div>
+
+<main class="main">
+<h1>Criar Campanha</h1>
+
+<div class="card">
+  <label>Nome da Campanha</label>
+  <input type="text" id="nome">
+
+  <label>Período Início</label>
+  <input type="date" id="inicio">
+
+  <label>Período Fim</label>
+  <input type="date" id="fim">
+
+  <label>Meta SLA (%)</label>
+  <input type="number" id="meta_sla" step="0.01">
+
+  <label>Tema da Campanha</label>
+  <input type="text" id="tema">
+
+  <button class="btn" onclick="criarCampanha()">Criar Campanha</button>
+</div>
+
+<h2>Campanhas Cadastradas</h2>
+<div id="lista-campanhas"></div>
+
+</main>
+
+<script>
+fetch('/components/sidebar_admin.html')
+  .then(r=>r.text())
+  .then(html=>document.getElementById("sidebar-container").innerHTML = html);
+
+async function criarCampanha(){
+  const payload = {
+    nome: nome.value,
+    periodo_inicio: inicio.value,
+    periodo_fim: fim.value,
+    meta_sla: meta_sla.value,
+    tema: tema.value
+  };
+
+  const res = await fetch("/api/campanhas/criar", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  alert("Campanha criada!");
+  carregarCampanhas();
+}
+
+async function ativarCampanha(id){
+  await fetch("/api/campanhas/ativar", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ campanha_id:id })
+  });
+  alert("Campanha ativada!");
+  carregarCampanhas();
+}
+
+async function carregarCampanhas(){
+  const res = await fetch("/api/campanhas/listar");
+  const lista = await res.json();
+
+  let html = "<table class='table'><tr><th>ID</th><th>Nome</th><th>Período</th><th>Ativa</th><th>Ações</th></tr>";
+
+  lista.forEach(c=>{
+    html += `
+      <tr>
+        <td>${c.id}</td>
+        <td>${c.nome}</td>
+        <td>${c.periodo_inicio} até ${c.periodo_fim}</td>
+        <td>${c.ativa==1?"SIM":"NÃO"}</td>
+        <td>
+          <button onclick="ativarCampanha(${c.id})">Ativar</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  html += "</table>";
+  document.getElementById("lista-campanhas").innerHTML = html;
+}
+
+carregarCampanhas();
+</script>
+
+</body>
+</html>
