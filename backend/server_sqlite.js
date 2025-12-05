@@ -713,6 +713,21 @@ app.get("/api/campanha/ranking", (req, res) => {
     });
 });
 
+// ======================================
+// API - REGISTRAR PONTOS - LISTA DE USUARIO
+// ======================================
+
+app.get("/api/usuarios/listar", (req, res) => {
+    const sql = "SELECT id, nome, email FROM usuarios ORDER BY nome ASC";
+
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            return res.status(500).json({ erro: err.message });
+        }
+        res.json(rows);
+    });
+});
+
 
 // ======================================
 // START SERVER
