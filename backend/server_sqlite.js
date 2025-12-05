@@ -731,6 +731,10 @@ app.get("/api/usuarios/listar", (req, res) => {
 // ===============================
 // API - Registrar múltiplos bônus
 // ===============================
+// ===================================================
+// API - Registrar múltiplos bônus da mesma campanha
+// Tabela correta: bonus_historico
+// ===================================================
 app.post("/api/bonus/add-multiple", (req, res) => {
     const { campanha_id, bonus } = req.body;
 
@@ -739,7 +743,7 @@ app.post("/api/bonus/add-multiple", (req, res) => {
     }
 
     const sql = `
-        INSERT INTO historico_bonus (campanha_id, nome_bonus, descricao, valor)
+        INSERT INTO bonus_historico (campanha_id, titulo, descricao, valor)
         VALUES (?, ?, ?, ?)
     `;
 
@@ -749,21 +753,27 @@ app.post("/api/bonus/add-multiple", (req, res) => {
         bonus.forEach(b => {
             stmt.run(
                 campanha_id,
-                b.nome,
+                b.nome,        // vira "titulo" no banco
                 b.descricao,
                 b.valor,
                 err => {
-                    if (err) console.error("Erro ao inserir bônus:", err);
+                    if (err) {
+                        console.error("Erro ao registrar bônus:", err);
+                    }
                 }
             );
         });
 
         stmt.finalize(err => {
             if (err) {
-                console.error("Erro ao finalizar inserção:", err);
-                return res.status(500).json({ error: "Erro ao registrar bônus" });
+                console.error("Erro ao finalizar registro de bônus:", err);
+                return res.status(500).json({ error: "Erro ao salvar bônus" });
             }
-            res.json({ success: true, message: "Histórico de bônus registrado com sucesso!" });
+
+            res.json({
+                success: true,
+                message: "Histórico de bônus registrado com sucesso!"
+            });
         });
     });
 });
