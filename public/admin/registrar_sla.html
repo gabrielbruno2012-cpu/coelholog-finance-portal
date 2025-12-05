@@ -1,188 +1,86 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Registrar SLA - CoelhoLog</title>
-
-    <style>
-        body {
-            background-color: #071a33;
-            font-family: 'Inter', sans-serif;
-            color: #fff;
-            margin: 0;
-            padding: 20px;
-        }
-
-        h2.page-title {
-            font-size: 26px;
-            margin-bottom: 20px;
-            font-weight: 700;
-        }
-
-        .card {
-            background: #0c2852;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 0 15px #00000040;
-            max-width: 900px;
-            margin-bottom: 30px;
-        }
-
-        .form-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        label {
-            font-size: 14px;
-            color: #d7e3f5;
-            margin-bottom: 6px;
-        }
-
-        select, input {
-            padding: 12px;
-            border-radius: 8px;
-            border: none;
-            background: #163864;
-            color: #fff;
-            font-size: 15px;
-        }
-
-        .btn-primary {
-            background: #ffcc00;
-            padding: 14px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 17px;
-            cursor: pointer;
-            color: #000;
-            font-weight: 700;
-            width: 230px;
-        }
-
-        .btn-primary:hover {
-            background: #e6b800;
-        }
-
-        #msg {
-            margin-top: 10px;
-            font-size: 16px;
-            font-weight: 600;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Registrar SLA</title>
+<link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
-<h2 class="page-title">Registrar SLA da Campanha</h2>
+<div id="sidebar-container"></div>
+
+<main class="main">
+<h1>Registrar SLA</h1>
 
 <div class="card">
-    <form id="formSLA" class="form-grid">
 
-        <div class="form-group">
-            <label>Selecione a Campanha Ativa *</label>
-            <select id="selectCampanha" required>
-                <option value="">Carregando...</option>
-            </select>
-        </div>
+  <label>Campanha Ativa</label>
+  <select id="campanha"></select>
 
-        <div class="form-group">
-            <label>Período (ex: Semana 1)</label>
-            <select id="periodo">
-                <option value="Semana 1">Semana 1</option>
-                <option value="Semana 2">Semana 2</option>
-                <option value="Semana 3">Semana 3</option>
-                <option value="Semana 4">Semana 4</option>
-            </select>
-        </div>
+  <label>Período (Semana)</label>
+  <select id="periodo">
+    <option>Semana 1</option>
+    <option>Semana 2</option>
+    <option>Semana 3</option>
+    <option>Semana 4</option>
+  </select>
 
-        <div class="form-group">
-            <label>SLA (%)</label>
-            <input type="number" id="sla" min="0" max="100" step="0.1" placeholder="Ex: 97.5">
-        </div>
+  <label>SLA (%)</label>
+  <input type="number" id="sla" step="0.01">
 
-        <button class="btn-primary" type="submit">Registrar SLA</button>
+  <button class="btn" onclick="registrarSLA()">Registrar</button>
 
-        <p id="msg"></p>
-
-    </form>
 </div>
 
+<div id="lista"></div>
+
+</main>
+
 <script>
-    // 🔵 Carrega campanhas automaticamente
-    async function carregarCampanhas() {
-        const select = document.getElementById("selectCampanha");
+fetch('/components/sidebar_admin.html')
+  .then(r=>r.text())
+  .then(html=>document.getElementById("sidebar-container").innerHTML = html);
 
-        try {
-            const req = await fetch("/api/campanhas/listar");
-            const res = await req.json();
+async function carregarCampanhaAtiva(){
+  const res = await fetch("/api/campanhas/ativa");
+  const c = await res.json();
+  if(c.id){
+    campanha.innerHTML = `<option value='${c.id}'>${c.nome}</option>`;
+    carregarSLA(c.id);
+  }
+}
 
-            select.innerHTML = "";
+async function registrarSLA(){
+  const payload = {
+    campanha_id: campanha.value,
+    periodo: periodo.value,
+    sla_percentual: sla.value
+  };
 
-            if (!res.ok || res.data.length === 0) {
-                select.innerHTML = `<option value="">Nenhuma campanha encontrada</option>`;
-                return;
-            }
+  await fetch("/api/campanha/sla/registrar",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify(payload)
+  });
 
-            res.data.forEach(c => {
-                const opt = document.createElement("option");
-                opt.value = c.id;
-                opt.textContent = `${c.nome} (${c.periodo_inicio} → ${c.periodo_fim})`;
-                select.appendChild(opt);
-            });
+  alert("SLA registrada!");
+  carregarSLA(campanha.value);
+}
 
-        } catch (error) {
-            select.innerHTML = `<option value="">Erro ao carregar campanhas</option>`;
-        }
-    }
+async function carregarSLA(id){
+  const res = await fetch("/api/campanha/sla/listar?campanha_id="+id);
+  const lista = await res.json();
 
-    carregarCampanhas();
+  let html = "<h2>SLA Registrados</h2><table class='table'><tr><th>Semana</th><th>SLA</th></tr>";
+  lista.forEach(r => {
+    html += `<tr><td>${r.periodo}</td><td>${r.sla_percentual}%</td></tr>`;
+  });
+  html += "</table>";
 
-    // 🟡 Enviar SLA
-    document.getElementById("formSLA").addEventListener("submit", async (e) => {
-        e.preventDefault();
+  document.getElementById("lista").innerHTML = html;
+}
 
-        const data = {
-            campanha_id: document.getElementById("selectCampanha").value,
-            periodo: document.getElementById("periodo").value,
-            sla_percentual: Number(document.getElementById("sla").value)
-        };
-
-        const msg = document.getElementById("msg");
-        msg.textContent = "Registrando SLA...";
-        msg.style.color = "#ffcc00";
-
-        try {
-            const req = await fetch("/api/campanhas/sla", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
-            });
-
-            const res = await req.json();
-
-            if (!res.ok) {
-                msg.textContent = res.erro || "Erro ao registrar SLA.";
-                msg.style.color = "#ff4d4d";
-                return;
-            }
-
-            msg.textContent = "SLA registrado com sucesso!";
-            msg.style.color = "#00e676";
-
-            document.getElementById("formSLA").reset();
-
-        } catch (err) {
-            msg.textContent = "Erro de comunicação com o servidor.";
-            msg.style.color = "#ff4d4d";
-        }
-    });
+carregarCampanhaAtiva();
 </script>
-
 </body>
 </html>
