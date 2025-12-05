@@ -728,6 +728,47 @@ app.get("/api/usuarios/listar", (req, res) => {
     });
 });
 
+// ===============================
+// API - Registrar múltiplos bônus
+// ===============================
+app.post("/api/bonus/add-multiple", (req, res) => {
+    const { campanha_id, bonus } = req.body;
+
+    if (!campanha_id || !Array.isArray(bonus) || bonus.length === 0) {
+        return res.status(400).json({ error: "Dados inválidos" });
+    }
+
+    const sql = `
+        INSERT INTO historico_bonus (campanha_id, nome_bonus, descricao, valor)
+        VALUES (?, ?, ?, ?)
+    `;
+
+    db.serialize(() => {
+        const stmt = db.prepare(sql);
+
+        bonus.forEach(b => {
+            stmt.run(
+                campanha_id,
+                b.nome,
+                b.descricao,
+                b.valor,
+                err => {
+                    if (err) console.error("Erro ao inserir bônus:", err);
+                }
+            );
+        });
+
+        stmt.finalize(err => {
+            if (err) {
+                console.error("Erro ao finalizar inserção:", err);
+                return res.status(500).json({ error: "Erro ao registrar bônus" });
+            }
+            res.json({ success: true, message: "Histórico de bônus registrado com sucesso!" });
+        });
+    });
+});
+
+
 
 // ======================================
 // START SERVER
