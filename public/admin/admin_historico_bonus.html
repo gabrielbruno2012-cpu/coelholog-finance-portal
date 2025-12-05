@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Histórico de Bônus - Admin</title>
+
+    <style>
+        body {
+            background: #071a2c;
+            color: white;
+            font-family: 'Inter', sans-serif;
+        }
+        .container {
+            width: 90%;
+            max-width: 900px;
+            margin: 40px auto;
+            background: #0d2238;
+            padding: 25px;
+            border-radius: 12px;
+        }
+        h2 { margin-bottom: 20px; }
+        label { font-weight: bold; display: block; margin-top: 15px; }
+        select, input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            background: #102940;
+            border: none;
+            border-radius: 6px;
+            color: white;
+        }
+        textarea { height: 60px; }
+        .bonus-box {
+            border: 1px solid #1b3550;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #f1c40f;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 25px;
+        }
+        .success { color: #2ecc71; margin-top: 10px; }
+        .error { color: #e74c3c; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Registrar Histórico de Bônus</h2>
+
+    <!-- Selecionar Campanha -->
+    <label>Selecionar Campanha</label>
+    <select id="campanhaSelect"></select>
+
+    <!-- BÔNUS 1 (obrigatório) -->
+    <div class="bonus-box">
+        <h3>Bônus 1 (Obrigatório)</h3>
+
+        <label>Nome do Bônus</label>
+        <input id="bonus1_nome" placeholder="Ex: Bônus de performance semanal" />
+
+        <label>Descrição</label>
+        <textarea id="bonus1_desc" placeholder="Ex: Semana 1 - SLA 98% no prazo"></textarea>
+
+        <label>Valor (R$)</label>
+        <input type="number" id="bonus1_valor" placeholder="Ex: 120" />
+    </div>
+
+    <!-- BÔNUS 2 (opcional) -->
+    <div class="bonus-box">
+        <h3>Bônus 2 (Opcional)</h3>
+
+        <label>Nome do Bônus</label>
+        <input id="bonus2_nome" placeholder="Ex: Campanha Zero Ocorrência" />
+
+        <label>Descrição</label>
+        <textarea id="bonus2_desc" placeholder="Ex: 30 dias sem incidentes"></textarea>
+
+        <label>Valor (R$)</label>
+        <input type="number" id="bonus2_valor" placeholder="Ex: 120" />
+    </div>
+
+    <!-- BÔNUS 3 (opcional) -->
+    <div class="bonus-box">
+        <h3>Bônus 3 (Opcional)</h3>
+
+        <label>Nome do Bônus</label>
+        <input id="bonus3_nome" placeholder="Ex: Bônus extra de rota" />
+
+        <label>Descrição</label>
+        <textarea id="bonus3_desc" placeholder="Ex: Cobertura de rota emergencial"></textarea>
+
+        <label>Valor (R$)</label>
+        <input type="number" id="bonus3_valor" placeholder="Ex: 80" />
+    </div>
+
+    <button onclick="salvarBonus()">Salvar Histórico</button>
+    <div id="retorno"></div>
+</div>
+
+<script>
+    // Carregar campanhas na lista
+    async function carregarCampanhas() {
+        const response = await fetch("/api/campanhas");
+        const dados = await response.json();
+
+        const select = document.getElementById("campanhaSelect");
+
+        dados.forEach(c => {
+            let option = document.createElement("option");
+            option.value = c.id;
+            option.textContent = `${c.nome} (${c.campanha_inicio} - ${c.campanha_fim})`;
+            select.appendChild(option);
+        });
+    }
+    carregarCampanhas();
+
+
+    // ENVIAR BONUS PARA API
+    async function salvarBonus() {
+        const campanha_id = document.getElementById("campanhaSelect").value;
+
+        const bonus = [];
+
+        function addBonus(nome, desc, valor) {
+            if (nome && desc && valor) {
+                bonus.push({ nome, descricao: desc, valor });
+            }
+        }
+
+        // Registrar os bônus
+        addBonus(
+            document.getElementById("bonus1_nome").value,
+            document.getElementById("bonus1_desc").value,
+            document.getElementById("bonus1_valor").value
+        );
+
+        addBonus(
+            document.getElementById("bonus2_nome").value,
+            document.getElementById("bonus2_desc").value,
+            document.getElementById("bonus2_valor").value
+        );
+
+        addBonus(
+            document.getElementById("bonus3_nome").value,
+            document.getElementById("bonus3_desc").value,
+            document.getElementById("bonus3_valor").value
+        );
+
+        if (bonus.length === 0) {
+            document.getElementById("retorno").innerHTML =
+                "<p class='error'>Você precisa preencher pelo menos o Bônus 1!</p>";
+            return;
+        }
+
+        const response = await fetch("/api/bonus/add-multiple", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ campanha_id, bonus })
+        });
+
+        if (response.ok) {
+            document.getElementById("retorno").innerHTML =
+                "<p class='success'>Histórico de bônus registrado com sucesso!</p>";
+        } else {
+            document.getElementById("retorno").innerHTML =
+                "<p class='error'>Erro ao salvar bônus.</p>";
+        }
+    }
+</script>
+
+</body>
+</html>
