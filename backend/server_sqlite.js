@@ -552,195 +552,165 @@ app.get("/api/producao/pendentes", (req, res) => {
     });
 });
 
-app.post('/api/campanhas/criar', (req, res) => {
-  const { nome, descricao, periodo_inicio, periodo_fim, meta_sla, tema } = req.body;
+// ======================================
+// API CAMPANHA
+// ======================================
+app.post("/api/campanhas/criar", (req, res) => {
+    const { nome, periodo_inicio, periodo_fim, meta_sla, tema } = req.body;
 
-  if (!nome || !periodo_inicio || !periodo_fim) {
-    return res.status(400).json({ erro: "Campos obrigatórios não preenchidos." });
-  }
+    const sql = `
+        INSERT INTO campanhas (nome, periodo_inicio, periodo_fim, meta_sla, tema)
+        VALUES (?, ?, ?, ?, ?)
+    `;
 
-  const sql = `
-    INSERT INTO campanhas 
-    (nome, descricao, periodo_inicio, periodo_fim, meta_sla, tema) 
-    VALUES (?, ?, ?, ?, ?, ?)
-  `;
+    db.run(sql, [nome, periodo_inicio, periodo_fim, meta_sla, tema], function(err){
+        if(err) return res.status(500).json({ erro: err.message });
 
-  db.run(sql, [nome, descricao, periodo_inicio, periodo_fim, meta_sla, tema], function (err) {
-    if (err) return res.status(500).json({ erro: "Erro ao criar campanha." });
-    res.json({ ok: true, campanha_id: this.lastID });
-  });
+        res.json({ sucesso: true, campanha_id: this.lastID });
+    });
 });
 
-app.get('/api/campanhas/listar', (req, res) => {
-  db.all("SELECT * FROM campanhas ORDER BY periodo_inicio DESC", [], (err, rows) => {
-    if (err) return res.status(500).json({ erro: "Erro ao listar campanhas." });
-    res.json(rows);
-  });
+app.get("/api/campanhas/listar", (req, res) => {
+    db.all("SELECT * FROM campanhas ORDER BY id DESC", [], (err, rows) => {
+        if(err) return res.status(500).json({ erro: err.message });
+        res.json(rows);
+    });
 });
 
-app.post('/api/campanhas/status', (req, res) => {
-  const { campanha_id, ativa } = req.body;
+app.post("/api/campanhas/ativar", (req, res) => {
+    const { campanha_id } = req.body;
 
-  db.run("UPDATE campanhas SET ativa = ? WHERE id = ?", [ativa, campanha_id], (err) => {
-    if (err) return res.status(500).json({ erro: "Erro ao atualizar campanha." });
-    res.json({ ok: true });
-  });
+    db.serialize(() => {
+        db.run("UPDATE campanhas SET ativa = 0");
+        db.run("UPDATE campanhas SET ativa = 1 WHERE id = ?", [campanha_id], function(err){
+            if(err) return res.status(500).json({ erro: err.message });
+            res.json({ sucesso: true });
+        });
+    });
 });
 
-app.post('/api/campanhas/pontos/salvar', (req, res) => {
-  const { campanha_id, usuario_id, semana, pontos, bonus_estimado, sla_semana, observacao } = req.body;
-
-  if (!campanha_id || !usuario_id || !semana) {
-    return res.status(400).json({ erro: "Campos obrigatórios não preenchidos." });
-  }
-
-  const sql = `
-    INSERT INTO campanhas_pontos_semanais
-    (campanha_id, usuario_id, semana, pontos, bonus_estimado, sla_semana, observacao)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `;
-
-  db.run(sql, [campanha_id, usuario_id, semana, pontos, bonus_estimado, sla_semana, observacao], function (err) {
-    if (err) return res.status(500).json({ erro: "Erro ao registrar pontos." });
-    res.json({ ok: true, id: this.lastID });
-  });
+app.get("/api/campanhas/ativa", (req, res) => {
+    db.get("SELECT * FROM campanhas WHERE ativa = 1 LIMIT 1", [], (err, row) => {
+        if(err) return res.status(500).json({ erro: err.message });
+        res.json(row || {});
+    });
 });
 
-app.get('/api/campanhas/pontos/listar', (req, res) => {
-  const { campanha_id } = req.query;
+app.post("/api/campanha/sla/registrar", (req, res) => {
+    const { campanha_id, periodo, sla_percentual } = req.body;
 
-  db.all(`
-    SELECT cps.*, u.nome as colaborador 
-    FROM campanhas_pontos_semanais cps
-    LEFT JOIN usuarios u ON u.id = cps.usuario_id
-    WHERE cps.campanha_id = ?
-    ORDER BY cps.semana ASC
-  `, [campanha_id], (err, rows) => {
-    if (err) return res.status(500).json({ erro: "Erro ao listar pontos." });
-    res.json(rows);
-  });
+    const sql = `
+        INSERT INTO campanha_sla (campanha_id, periodo, sla_percentual)
+        VALUES (?, ?, ?)
+    `;
+
+    db.run(sql, [campanha_id, periodo, sla_percentual], function(err){
+        if(err) return res.status(500).json({ erro: err.message });
+
+        res.json({ sucesso: true, id: this.lastID });
+    });
 });
 
-app.post('/api/campanhas/sla/salvar', (req, res) => {
-  const { campanha_id, periodo_ref, total_entregas, entregas_no_prazo } = req.body;
+app.get("/api/campanha/sla/listar", (req, res) => {
+    const campanha_id = req.query.campanha_id;
 
-  if (!campanha_id || !periodo_ref) {
-    return res.status(400).json({ erro: "Campos obrigatórios não preenchidos." });
-  }
-
-  const sla = total_entregas > 0 
-    ? (entregas_no_prazo / total_entregas) * 100 
-    : 0;
-
-  const sql = `
-    INSERT INTO campanhas_sla_geral
-    (campanha_id, periodo_ref, total_entregas, entregas_no_prazo, sla_percentual)
-    VALUES (?, ?, ?, ?, ?)
-  `;
-
-  db.run(sql, [campanha_id, periodo_ref, total_entregas, entregas_no_prazo, sla], function (err) {
-    if (err) return res.status(500).json({ erro: "Erro ao registrar SLA." });
-    res.json({ ok: true, id: this.lastID });
-  });
+    db.all("SELECT * FROM campanha_sla WHERE campanha_id = ?", [campanha_id], (err, rows) => {
+        if(err) return res.status(500).json({ erro: err.message });
+        res.json(rows);
+    });
 });
 
-app.get('/api/campanhas/sla/listar', (req, res) => {
-  const { campanha_id } = req.query;
+app.post("/api/incentivos/pontos/registrar", (req, res) => {
+    const { courier_id, campanha_id, pontos, motivo } = req.body;
 
-  db.all(`
-    SELECT * 
-    FROM campanhas_sla_geral
-    WHERE campanha_id = ?
-    ORDER BY atualizado_em DESC
-  `, [campanha_id], (err, rows) => {
-    if (err) return res.status(500).json({ erro: "Erro ao listar SLA." });
-    res.json(rows);
-  });
+    const sql = `
+        INSERT INTO incentivos_pontos (courier_id, campanha_id, pontos, motivo)
+        VALUES (?, ?, ?, ?)
+    `;
+
+    db.run(sql, [courier_id, campanha_id, pontos, motivo], function(err){
+        if(err) return res.status(500).json({ erro: err.message });
+
+        res.json({ sucesso: true, id: this.lastID });
+    });
 });
 
-// ======================= INCENTIVOS =========================
+app.get("/api/incentivos/pontos/usuario", (req, res) => {
+    const courier_id = req.query.courier_id;
 
-// Lista campanhas ativas
-app.get("/api/incentivos/campanhas", (req, res) => {
-  db.all("SELECT * FROM incentives_campaigns ORDER BY created_at DESC", [], (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: "Erro ao carregar campanhas" });
-    }
-    res.json(rows);
-  });
+    db.all("SELECT * FROM incentivos_pontos WHERE courier_id = ?", [courier_id], (err, rows) => {
+        if(err) return res.status(500).json({ erro: err.message });
+        res.json(rows);
+    });
 });
 
-// Pontos do colaborador
-app.get("/api/incentivos/pontos/:id", (req, res) => {
-  const { id } = req.params;
-  db.get("SELECT * FROM incentives_points WHERE courier_id = ?", [id], (err, row) => {
-    if (err) return res.status(500).json({ error: "Erro ao carregar pontos" });
-    res.json(row || { courier_id: id, points: 0, level: "Bronze" });
-  });
+app.post("/api/incentivos/bonus/registrar", (req, res) => {
+    const { courier_id, campanha_id, titulo, valor } = req.body;
+
+    const sql = `
+        INSERT INTO bonus_historico (courier_id, campanha_id, titulo, valor)
+        VALUES (?, ?, ?, ?)
+    `;
+
+    db.run(sql, [courier_id, campanha_id, titulo, valor], function(err){
+        if(err) return res.status(500).json({ erro: err.message });
+        
+        res.json({ sucesso: true });
+    });
 });
 
-// Histórico SLA
-app.get("/api/incentivos/sla", (req, res) => {
-  db.all("SELECT * FROM sla_updates ORDER BY created_at DESC LIMIT 20", [], (err, rows) => {
-    if (err) return res.status(500).json({ error: "Erro ao carregar SLA" });
-    res.json(rows);
-  });
+app.get("/api/incentivos/bonus/usuario", (req, res) => {
+    const courier_id = req.query.courier_id;
+
+    db.all("SELECT * FROM bonus_historico WHERE courier_id = ?", [courier_id], (err, rows) => {
+        if(err) return res.status(500).json({ erro: err.message });
+        res.json(rows);
+    });
 });
 
-// Registrar pontos
-app.post("/api/incentivos/add", (req, res) => {
-  const { courier_id, points, campaign_id } = req.body;
+app.post("/api/campanha/ranking/recalcular", (req, res) => {
+    const { campanha_id } = req.body;
 
-  db.run(
-    "INSERT INTO incentives_points (courier_id, points, campaign_id) VALUES (?,?,?)",
-    [courier_id, points, campaign_id],
-    function (err) {
-      if (err) return res.status(500).json({ error: "Erro ao registrar pontos" });
-      res.json({ success: true, id: this.lastID });
-    }
-  );
+    const sql = `
+        SELECT courier_id, SUM(pontos) AS total
+        FROM incentivos_pontos
+        WHERE campanha_id = ?
+        GROUP BY courier_id
+        ORDER BY total DESC
+    `;
+
+    db.all(sql, [campanha_id], (err, rows) => {
+        if(err) return res.status(500).json({ erro: err.message });
+
+        db.run("DELETE FROM campanha_ranking WHERE campanha_id = ?", [campanha_id]);
+
+        let pos = 1;
+
+        rows.forEach(r => {
+            db.run(`
+                INSERT INTO campanha_ranking (campanha_id, courier_id, pontos_total, posicao)
+                VALUES (?, ?, ?, ?)
+            `, [campanha_id, r.courier_id, r.total, pos]);
+            pos++;
+        });
+
+        res.json({ sucesso: true });
+    });
 });
 
-// Registrar SLA
-app.post("/api/sla/update", (req, res) => {
-  const { sla_percent } = req.body;
+app.get("/api/campanha/ranking", (req, res) => {
+    const campanha_id = req.query.campanha_id;
 
-  db.run(
-    "INSERT INTO sla_updates (sla_percent) VALUES (?)",
-    [sla_percent],
-    function (err) {
-      if (err) return res.status(500).json({ error: "Erro ao atualizar SLA" });
-      res.json({ success: true });
-    }
-  );
-});
-
-// Registrar incidente
-app.post("/api/incidentes", (req, res) => {
-  const { courier_id, type, description } = req.body;
-
-  db.run(
-    "INSERT INTO incidents (courier_id, type, description) VALUES (?,?,?)",
-    [courier_id, type, description],
-    function (err) {
-      if (err) return res.status(500).json({ error: "Erro ao registrar incidente" });
-      res.json({ success: true });
-    }
-  );
-});
-
-// Histórico de pontos do colaborador
-app.get("/api/incentivos/historico/:id", (req, res) => {
-  const { id } = req.params;
-
-  db.all(
-    "SELECT * FROM incentives_points WHERE courier_id = ? ORDER BY created_at DESC",
-    [id],
-    (err, rows) => {
-      if (err) return res.status(500).json({ error: "Erro ao buscar histórico" });
-      res.json(rows);
-    }
-  );
+    db.all(`
+        SELECT cr.*, u.nome
+        FROM campanha_ranking cr
+        JOIN usuarios u ON u.id = cr.courier_id
+        WHERE campanha_id = ?
+        ORDER BY posicao ASC
+    `, [campanha_id], (err, rows) => {
+        if(err) return res.status(500).json({ erro: err.message });
+        res.json(rows);
+    });
 });
 
 
