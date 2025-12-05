@@ -778,6 +778,18 @@ app.post("/api/bonus/add-multiple", (req, res) => {
     });
 });
 
+// ============================
+// LISTAR CAMPANHAS ATIVAS
+// ============================
+app.get("/api/campanhas", (req, res) => {
+    db.all("SELECT * FROM campanhas ORDER BY id DESC", (err, rows) => {
+        if (err) {
+            console.error("Erro ao buscar campanhas:", err);
+            return res.status(500).json({ error: "Erro interno" });
+        }
+        res.json(rows);
+    });
+});
 
 
 // ======================================
