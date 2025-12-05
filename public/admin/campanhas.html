@@ -1,0 +1,66 @@
+<!-- dentro do <main> do painel admin -->
+<section class="content-wrapper">
+  <h2 class="page-title">Campanhas de Incentivo</h2>
+
+  <!-- Card: Criar nova campanha -->
+  <div class="card">
+    <h3>Nova campanha</h3>
+    <form id="formNovaCampanha" class="form-grid">
+      <div class="form-group">
+        <label for="campNome">Nome da campanha *</label>
+        <input type="text" id="campNome" required placeholder="Ex: Zero Ocorrências - Dez/2025" />
+      </div>
+
+      <div class="form-group">
+        <label for="campDescricao">Descrição</label>
+        <textarea id="campDescricao" rows="3"
+          placeholder="Campanha focada em reduzir incidentes críticos e melhorar SLA."></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="campInicio">Início *</label>
+          <input type="date" id="campInicio" required />
+        </div>
+
+        <div class="form-group">
+          <label for="campFim">Fim *</label>
+          <input type="date" id="campFim" required />
+        </div>
+
+        <div class="form-group">
+          <label for="campMetaSLA">Meta de SLA (%)</label>
+          <input type="number" id="campMetaSLA" min="0" max="100" step="0.1" placeholder="95" />
+        </div>
+
+        <div class="form-group">
+          <label for="campTema">Tema / cor</label>
+          <input type="text" id="campTema" placeholder="Ex: dourado, campanha de Natal" />
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary">Criar campanha</button>
+      <span id="campanhaMsg" class="form-message"></span>
+    </form>
+  </div>
+
+  <!-- Card: Lista de campanhas -->
+  <div class="card">
+    <h3>Campanhas cadastradas</h3>
+    <table class="table-default" id="tabelaCampanhas">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Período</th>
+          <th>Meta SLA</th>
+          <th>Ativa?</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- preenchido via JS -->
+      </tbody>
+    </table>
+  </div>
+</section>
