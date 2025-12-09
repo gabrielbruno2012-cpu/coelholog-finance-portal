@@ -634,19 +634,19 @@ app.get("/api/campanha/sla/listar", (req, res) => {
 
 
 app.post("/api/incentivos/pontos/registrar", (req, res) => {
-    const { courier_id, campanha_id, pontos, motivo } = req.body;
+    const { courier_id, campanha_id, periodo, pontos, motivo } = req.body;
 
-    const sql = `
-        INSERT INTO incentivos_pontos (courier_id, campanha_id, pontos, motivo)
-        VALUES (?, ?, ?, ?)
-    `;
-
-    db.run(sql, [courier_id, campanha_id, pontos, motivo], function(err){
-        if(err) return res.status(500).json({ erro: err.message });
-
-        res.json({ sucesso: true, id: this.lastID });
+    db.run(`
+        INSERT INTO campanha_pontos (courier_id, campanha_id, periodo, pontos, motivo, criado_em)
+        VALUES (?, ?, ?, ?, ?, datetime('now'))
+    `,
+    [courier_id, campanha_id, periodo, pontos, motivo],
+    err => {
+        if(err) return res.status(500).json({erro: err.message});
+        res.json({sucesso: true});
     });
 });
+
 
 app.get("/api/incentivos/pontos/usuario", (req, res) => {
     const courier_id = req.query.courier_id;
@@ -843,25 +843,44 @@ app.post("/api/campanhas/desativar", (req, res) => {
 });
 
 app.get("/api/incentivos/pontos/listar", (req, res) => {
-    db.all(
-        "SELECT * FROM incentivo_pontos ORDER BY id DESC",
-        [],
-        (err, rows) => {
-            if (err) return res.status(500).json({ error: "db" });
-            res.json(rows);
-        }
-    );
+    const { campanha_id } = req.query;
+
+    db.all(`
+        SELECT campanha_pontos.*, usuarios.nome
+        FROM campanha_pontos
+        JOIN usuarios ON usuarios.id = campanha_pontos.courier_id
+        WHERE campanha_pontos.campanha_id = ?
+        ORDER BY campanha_pontos.id DESC
+    `,
+    [campanha_id],
+    (err, rows) => {
+        if(err) return res.status(500).json({erro: err.message});
+        res.json(rows);
+    });
 });
 
-app.get("/api/incentivos/pontos/listar", (req, res) => {
-    db.all(
-        "SELECT * FROM incentivo_pontos ORDER BY id DESC",
-        [],
-        (err, rows) => {
-            if (err) return res.status(500).json({ error: "db" });
-            res.json(rows);
-        }
-    );
+app.put("/api/incentivos/pontos/editar", (req, res) => {
+    const { id, pontos } = req.body;
+
+    db.run(`
+        UPDATE campanha_pontos
+        SET pontos = ?
+        WHERE id = ?
+    `,
+    [pontos, id],
+    err => {
+        if(err) return res.status(500).json({erro: err.message});
+        res.json({sucesso: true});
+    });
+});
+
+app.delete("/api/incentivos/pontos/excluir/:id", (req, res) => {
+    const { id } = req.params;
+
+    db.run("DELETE FROM campanha_pontos WHERE id = ?", [id], err => {
+        if(err) return res.status(500).json({erro: err.message});
+        res.json({sucesso: true});
+    });
 });
 
 
