@@ -60,10 +60,6 @@ th, td {
     padding: 14px;
     border-bottom: 1px solid #123;
 }
-
-.status {
-    font-weight: bold;
-}
 </style>
 </head>
 
@@ -82,11 +78,10 @@ th, td {
 
     <label>Semana da Campanha*</label>
     <select id="semana">
-        <option value="1">Semana 1</option>
-        <option value="2">Semana 2</option>
-        <option value="3">Semana 3</option>
-        <option value="4">Semana 4</option>
-        <option value="5">Semana 5</option>
+        <option value="Semana 1">Semana 1</option>
+        <option value="Semana 2">Semana 2</option>
+        <option value="Semana 3">Semana 3</option>
+        <option value="Semana 4">Semana 4</option>
     </select>
 
     <label>SLA (%) *</label>
@@ -113,7 +108,8 @@ th, td {
 </main>
 
 <script>
-// Carregar sidebar
+
+// Sidebar
 fetch('/components/sidebar_admin.html')
   .then(r => r.text())
   .then(html => document.getElementById("sidebar-container").innerHTML = html);
@@ -135,26 +131,26 @@ async function carregarCampanhaAtiva() {
 async function registrarSLA() {
     const payload = {
         campanha_id: campanha.value,
-        semana: semana.value,
-        sla: sla.value
+        periodo: semana.value,          // CORRIGIDO
+        sla_percentual: sla.value       // CORRIGIDO
     };
 
-    await fetch("/api/campanhas/sla/registrar", {
+    await fetch("/api/campanha/sla/registrar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
     });
 
-    alert("SLA registrado!");
+    alert("SLA registrado com sucesso!");
     carregarHistorico();
 }
 
 // Carregar histórico de SLA
 async function carregarHistorico() {
-    const camp = await fetch("/api/campanhas/ativa").then(r => r.json());
-    if (!camp || !camp.id) return;
+    const active = await fetch("/api/campanhas/ativa").then(r => r.json());
+    if (!active?.id) return;
 
-    const res = await fetch(`/api/campanhas/sla/listar?campanha_id=${camp.id}`);
+    const res = await fetch(`/api/campanha/sla/listar?campanha_id=${active.id}`);
     const lista = await res.json();
 
     listaSLA.innerHTML = "";
@@ -162,15 +158,15 @@ async function carregarHistorico() {
     lista.forEach(s => {
         listaSLA.innerHTML += `
             <tr>
-                <td>Semana ${s.semana}</td>
-                <td>${s.sla}%</td>
+                <td>${s.periodo}</td>
+                <td>${s.sla_percentual}%</td>
                 <td>${s.criado_em}</td>
             </tr>
         `;
     });
 }
 
-// Inicialização
+// Inicializar
 carregarCampanhaAtiva();
 carregarHistorico();
 
