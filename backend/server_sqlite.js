@@ -818,6 +818,40 @@ app.get("/api/campanha/bonus/listar", (req, res) => {
     });
 });
 
+// ======================================
+// EDITAR PONTOS E CAMPANHAS
+// ====================================
+
+app.post("/api/campanhas/desativar", (req, res) => {
+    db.run("UPDATE campanhas SET ativa = 0", [], err => {
+        if (err) return res.status(500).json({ error: "db" });
+        res.json({ sucesso: true });
+    });
+});
+
+app.get("/api/incentivos/pontos/listar", (req, res) => {
+    db.all(
+        "SELECT * FROM incentivo_pontos ORDER BY id DESC",
+        [],
+        (err, rows) => {
+            if (err) return res.status(500).json({ error: "db" });
+            res.json(rows);
+        }
+    );
+});
+
+app.get("/api/incentivos/pontos/listar", (req, res) => {
+    db.all(
+        "SELECT * FROM incentivo_pontos ORDER BY id DESC",
+        [],
+        (err, rows) => {
+            if (err) return res.status(500).json({ error: "db" });
+            res.json(rows);
+        }
+    );
+});
+
+
 
 // ======================================
 // START SERVER
