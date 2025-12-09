@@ -1,238 +1,145 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Registrar Histórico de Bônus - CoelhoLog</title>
-    <link rel="stylesheet" href="/css/style.css">
-
-    <style>
-        body {
-            background-color: #071a2c;
-            color: white;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .container {
-            width: 90%;
-            max-width: 900px;
-            margin: 30px auto;
-        }
-
-        .card {
-            background-color: #0d2238;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 0 12px rgba(0,0,0,0.4);
-        }
-
-        h2 {
-            margin-bottom: 20px;
-            font-size: 24px;
-        }
-
-        label {
-            display: block;
-            margin-top: 15px;
-            margin-bottom: 6px;
-            font-weight: 600;
-        }
-
-        .input, select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: none;
-            margin-bottom: 10px;
-            background-color: #132d47;
-            color: white;
-            font-size: 14px;
-        }
-
-        .bonus-block {
-            background-color: #0b1a2e;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            border-left: 4px solid #f1c40f;
-        }
-
-        .btn {
-            margin-top: 20px;
-            padding: 12px;
-            width: 100%;
-            background-color: #f1c40f;
-            color: black;
-            font-weight: bold;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .btn:hover {
-            background-color: #ffdb58;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Registrar Bônus</title>
+<link rel="stylesheet" href="/css/style.css">
 </head>
-
 <body>
 
-<div class="container">
-    <div class="card">
-        <h2>Registrar Histórico de Bônus</h2>
+<div id="sidebar-container"></div>
 
-        <!-- Seleção da Campanha -->
-        <label for="campanha">Selecionar Campanha</label>
-        <select id="campanha">
-            <option value="">Carregando...</option>
-        </select>
+<main class="main">
 
-        <!-- BÔNUS 1 (OBRIGATÓRIO) -->
-        <div class="bonus-block">
-            <h3>Bônus 1 (Obrigatório)</h3>
+<h1>Registrar Bônus</h1>
 
-            <label>Nome do Bônus</label>
-            <input id="b1_nome" class="input" placeholder="Ex: Performance Semanal">
+<div class="card">
 
-            <label>Descrição</label>
-            <input id="b1_desc" class="input" placeholder="Ex: Semana 1 - SLA 98%">
+  <label>Campanha Ativa</label>
+  <select id="campanha"></select>
 
-            <label>Valor (R$)</label>
-            <input id="b1_valor" class="input" type="number" placeholder="Ex: 120">
-        </div>
+  <label>Colaborador</label>
+  <select id="usuario"></select>
 
-        <!-- BÔNUS 2 (OPCIONAL) -->
-        <div class="bonus-block">
-            <h3>Bônus 2 (Opcional)</h3>
+  <hr>
 
-            <label>Nome do Bônus</label>
-            <input id="b2_nome" class="input" placeholder="Ex: Zero Ocorrência">
+  <h3>Bônus Obrigatório</h3>
 
-            <label>Descrição</label>
-            <input id="b2_desc" class="input" placeholder="Ex: 30 dias sem incidentes">
+  <label>Título</label>
+  <input type="text" id="titulo1" placeholder="Ex: Performance Semanal">
 
-            <label>Valor (R$)</label>
-            <input id="b2_valor" class="input" type="number" placeholder="Ex: 120">
-        </div>
+  <label>Valor (R$)</label>
+  <input type="number" id="valor1">
 
-        <!-- BÔNUS 3 (OPCIONAL) -->
-        <div class="bonus-block">
-            <h3>Bônus 3 (Opcional)</h3>
+  <hr>
 
-            <label>Nome do Bônus</label>
-            <input id="b3_nome" class="input" placeholder="Ex: Bônus Extra de Rota">
+  <h3>Bônus Opcional 2</h3>
 
-            <label>Descrição</label>
-            <input id="b3_desc" class="input" placeholder="Ex: Cobertura emergencial">
+  <label>Título</label>
+  <input type="text" id="titulo2" placeholder="Opcional">
 
-            <label>Valor (R$)</label>
-            <input id="b3_valor" class="input" type="number" placeholder="Ex: 80">
-        </div>
+  <label>Valor (R$)</label>
+  <input type="number" id="valor2">
 
-        <button class="btn" onclick="registrarBonus()">Registrar Bônus</button>
-    </div>
+  <hr>
+
+  <h3>Bônus Opcional 3</h3>
+
+  <label>Título</label>
+  <input type="text" id="titulo3" placeholder="Opcional">
+
+  <label>Valor (R$)</label>
+  <input type="number" id="valor3">
+
+  <br><br>
+
+  <button class="btn" onclick="registrarBonus()">Registrar Bônus</button>
+
 </div>
 
+</main>
+
 <script>
-// ===============================
-// CARREGAR CAMPANHAS
-// ===============================
-async function carregarCampanhas() {
-    const sel = document.getElementById("campanha");
+// Sidebar
+fetch('/components/sidebar_admin.html')
+  .then(r => r.text())
+  .then(html => document.getElementById("sidebar-container").innerHTML = html);
 
-    try {
-        const res = await fetch("/api/campanhas");
-        const campanhas = await res.json();
-
-        if (!campanhas.length) {
-            sel.innerHTML = `<option value="">Nenhuma campanha cadastrada</option>`;
-            return;
-        }
-
-        sel.innerHTML = campanhas.map(c =>
-            `<option value="${c.id}">${c.nome} (${c.data_inicio} → ${c.data_fim})</option>`
-        ).join("");
-
-    } catch (err) {
-        console.error("Erro ao carregar campanhas:", err);
-    }
+// Carregar campanha ativa
+async function carregarCampanhaAtiva(){
+  const res = await fetch("/api/campanhas/ativa");
+  const c = await res.json();
+  if(c.id){
+      campanha.innerHTML = `<option value="${c.id}">${c.nome}</option>`;
+  }
 }
 
-carregarCampanhas();
+// Carregar lista de colaboradores
+async function carregarUsuarios(){
+  const res = await fetch("/api/usuarios/listar");
+  const lista = await res.json();
 
-// ===============================
-// REGISTRAR BÔNUS
-// ===============================
-async function registrarBonus() {
-    const campanha_id = document.getElementById("campanha").value;
+  usuario.innerHTML = "";
+  lista.forEach(u => {
+    usuario.innerHTML += `<option value="${u.id}">${u.nome}</option>`;
+  });
+}
 
-    if (!campanha_id) {
-        alert("Selecione uma campanha.");
-        return;
-    }
+// Registrar bônus
+async function registrarBonus(){
 
-    // Bônus 1 (Obrigatório)
-    const bonus = [];
+  const campanha_id = campanha.value;
+  const courier_id = usuario.value;
 
-    const b1 = {
-        nome: document.getElementById("b1_nome").value,
-        descricao: document.getElementById("b1_desc").value,
-        valor: Number(document.getElementById("b1_valor").value)
-    };
+  // Lista de bônus
+  const bonus = [];
 
-    if (!b1.nome || !b1.descricao || !b1.valor) {
-        alert("Preencha todos os campos do Bônus 1.");
-        return;
-    }
+  // Bônus 1 (obrigatório)
+  if(!titulo1.value || !valor1.value){
+    return alert("O bônus obrigatório deve ser preenchido!");
+  }
 
-    bonus.push(b1);
+  bonus.push({
+    titulo: titulo1.value,
+    valor: Number(valor1.value)
+  });
 
-    // Bônus 2 (Opcional)
-    const b2_nome = document.getElementById("b2_nome").value;
-    const b2_desc = document.getElementById("b2_desc").value;
-    const b2_valor = document.getElementById("b2_valor").value;
-
-    if (b2_nome && b2_desc && b2_valor) {
-        bonus.push({
-            nome: b2_nome,
-            descricao: b2_desc,
-            valor: Number(b2_valor)
-        });
-    }
-
-    // Bônus 3 (Opcional)
-    const b3_nome = document.getElementById("b3_nome").value;
-    const b3_desc = document.getElementById("b3_desc").value;
-    const b3_valor = document.getElementById("b3_valor").value;
-
-    if (b3_nome && b3_desc && b3_valor) {
-        bonus.push({
-            nome: b3_nome,
-            descricao: b3_desc,
-            valor: Number(b3_valor)
-        });
-    }
-
-    // Enviar para API
-    const envio = {
-        campanha_id,
-        bonus
-    };
-
-    const res = await fetch("/api/bonus/add-multiple", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(envio)
+  // Opcional 2
+  if(titulo2.value && valor2.value){
+    bonus.push({
+      titulo: titulo2.value,
+      valor: Number(valor2.value)
     });
+  }
 
-    const data = await res.json();
+  // Opcional 3
+  if(titulo3.value && valor3.value){
+    bonus.push({
+      titulo: titulo3.value,
+      valor: Number(valor3.value)
+    });
+  }
 
-    if (data.success) {
-        alert("Bônus registrado com sucesso!");
-        location.reload();
-    } else {
-        alert("Erro ao registrar bônus.");
-    }
+  // Enviar cada bônus individualmente
+  for (let b of bonus){
+    await fetch("/api/incentivos/bonus/registrar", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({
+        courier_id,
+        campanha_id,
+        titulo: b.titulo,
+        valor: b.valor
+      })
+    });
+  }
+
+  alert("Bônus registrado com sucesso!");
+  location.reload();
 }
+
+carregarCampanhaAtiva();
+carregarUsuarios();
 </script>
 
 </body>
