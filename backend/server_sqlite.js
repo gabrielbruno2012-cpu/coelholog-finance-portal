@@ -791,6 +791,33 @@ app.get("/api/campanhas", (req, res) => {
     });
 });
 
+// ======================================
+// CAMPANHA - LISTAR BÔNUS DA CAMPANHA (NOVA)
+// ======================================
+app.get("/api/campanha/bonus/listar", (req, res) => {
+    const campanha_id = req.query.campanha_id;
+
+    if (!campanha_id) {
+        return res.status(400).json({ error: "campanha_id é obrigatório." });
+    }
+
+    const sql = `
+        SELECT id, titulo, descricao, valor
+        FROM campanha_bonus
+        WHERE campanha_id = ?
+        ORDER BY id ASC
+    `;
+
+    db.all(sql, [campanha_id], (err, rows) => {
+        if (err) {
+            console.error("Erro ao listar bônus da campanha:", err);
+            return res.status(500).json({ error: "db" });
+        }
+
+        res.json(rows);
+    });
+});
+
 
 // ======================================
 // START SERVER
