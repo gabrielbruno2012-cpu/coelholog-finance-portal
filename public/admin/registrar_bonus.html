@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Registrar Bônus</title>
+<title>Registrar Bônus da Campanha</title>
 <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -11,15 +11,12 @@
 
 <main class="main">
 
-<h1>Registrar Bônus</h1>
+<h1>Registrar Bônus da Campanha</h1>
 
 <div class="card">
 
   <label>Campanha Ativa</label>
   <select id="campanha"></select>
-
-  <label>Colaborador</label>
-  <select id="usuario"></select>
 
   <hr>
 
@@ -28,119 +25,5 @@
   <label>Título</label>
   <input type="text" id="titulo1" placeholder="Ex: Performance Semanal">
 
-  <label>Valor (R$)</label>
-  <input type="number" id="valor1">
-
-  <hr>
-
-  <h3>Bônus Opcional 2</h3>
-
-  <label>Título</label>
-  <input type="text" id="titulo2" placeholder="Opcional">
-
-  <label>Valor (R$)</label>
-  <input type="number" id="valor2">
-
-  <hr>
-
-  <h3>Bônus Opcional 3</h3>
-
-  <label>Título</label>
-  <input type="text" id="titulo3" placeholder="Opcional">
-
-  <label>Valor (R$)</label>
-  <input type="number" id="valor3">
-
-  <br><br>
-
-  <button class="btn" onclick="registrarBonus()">Registrar Bônus</button>
-
-</div>
-
-</main>
-
-<script>
-// Sidebar
-fetch('/components/sidebar_admin.html')
-  .then(r => r.text())
-  .then(html => document.getElementById("sidebar-container").innerHTML = html);
-
-// Carregar campanha ativa
-async function carregarCampanhaAtiva(){
-  const res = await fetch("/api/campanhas/ativa");
-  const c = await res.json();
-  if(c.id){
-      campanha.innerHTML = `<option value="${c.id}">${c.nome}</option>`;
-  }
-}
-
-// Carregar lista de colaboradores
-async function carregarUsuarios(){
-  const res = await fetch("/api/usuarios/listar");
-  const lista = await res.json();
-
-  usuario.innerHTML = "";
-  lista.forEach(u => {
-    usuario.innerHTML += `<option value="${u.id}">${u.nome}</option>`;
-  });
-}
-
-// Registrar bônus
-async function registrarBonus(){
-
-  const campanha_id = campanha.value;
-  const courier_id = usuario.value;
-
-  // Lista de bônus
-  const bonus = [];
-
-  // Bônus 1 (obrigatório)
-  if(!titulo1.value || !valor1.value){
-    return alert("O bônus obrigatório deve ser preenchido!");
-  }
-
-  bonus.push({
-    titulo: titulo1.value,
-    valor: Number(valor1.value)
-  });
-
-  // Opcional 2
-  if(titulo2.value && valor2.value){
-    bonus.push({
-      titulo: titulo2.value,
-      valor: Number(valor2.value)
-    });
-  }
-
-  // Opcional 3
-  if(titulo3.value && valor3.value){
-    bonus.push({
-      titulo: titulo3.value,
-      valor: Number(valor3.value)
-    });
-  }
-
-  // Enviar cada bônus individualmente
-  for (let b of bonus){
-    await fetch("/api/incentivos/bonus/registrar", {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({
-        courier_id,
-        campanha_id,
-        titulo: b.titulo,
-        valor: b.valor
-      })
-    });
-  }
-
-  alert("Bônus registrado com sucesso!");
-  location.reload();
-}
-
-carregarCampanhaAtiva();
-carregarUsuarios();
-</script>
-
-</body>
-</html>
+  <label>Descrição</label>
+  <input type="text" id="desc1" place
