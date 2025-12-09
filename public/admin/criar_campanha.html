@@ -11,7 +11,7 @@ body {
     color: #fff;
 }
 
-/* Card principal */
+/* Card */
 .card {
     background: #0d2040;
     padding: 30px;
@@ -21,7 +21,7 @@ body {
     box-shadow: 0 0 15px rgba(0,0,0,0.3);
 }
 
-/* Inputs padrão */
+/* Inputs premium */
 input, select {
     width: 100%;
     padding: 14px;
@@ -53,11 +53,14 @@ input::placeholder {
     background: #ffcc33;
 }
 
-/* Tabela */
+.table-container {
+    margin-top: 35px;
+}
+
 table {
     width: 100%;
-    margin-top: 25px;
     border-collapse: collapse;
+    margin-top: 10px;
 }
 
 th, td {
@@ -65,12 +68,12 @@ th, td {
     border-bottom: 1px solid #123;
 }
 
-.status-ativa {
+.status-on {
     color: #4cff96;
     font-weight: bold;
 }
 
-.status-inativa {
+.status-off {
     color: #ff6b6b;
     font-weight: bold;
 }
@@ -103,34 +106,44 @@ th, td {
 <div class="card">
 
     <h1>Criar Campanha</h1>
-    <p>Cadastre novas campanhas e gerencie quais estarão ativas.</p>
+    <p>Cadastre novas campanhas e gerencie quais estão ativas.</p>
 
     <label>Nome da Campanha*</label>
     <input type="text" id="nome" placeholder="Ex: Campanha Fevereiro">
 
-    <label>Meta de SLA (%)*</label>
-    <input type="number" id="meta_sla" placeholder="Ex: 95">
+    <label>Data de Início*</label>
+    <input type="date" id="inicio">
 
-    <label>Período*</label>
-    <input type="text" id="periodo" placeholder="Ex: 01/02 a 29/02">
+    <label>Data de Fim*</label>
+    <input type="date" id="fim">
+
+    <label>Meta de SLA (%)*</label>
+    <input type="number" step="0.01" id="meta_sla" placeholder="Ex: 95">
+
+    <label>Tema*</label>
+    <input type="text" id="tema" placeholder="Ex: Operação Zero Ocorrência">
 
     <button class="btn" onclick="criarCampanha()">Criar Campanha</button>
 
-    <hr style="margin:30px 0; border-color:#123;">
+    <hr style="border-color:#123; margin:35px 0;">
 
     <h2>Campanhas Cadastradas</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Nome</th>
-                <th>Meta SLA</th>
-                <th>Período</th>
-                <th>Status</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody id="listaCampanhas"></tbody>
-    </table>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Período</th>
+                    <th>Meta SLA</th>
+                    <th>Ativa</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="lista-campanhas"></tbody>
+        </table>
+    </div>
 
 </div>
 </main>
@@ -142,71 +155,65 @@ fetch('/components/sidebar_admin.html')
   .then(html => document.getElementById("sidebar-container").innerHTML = html);
 
 // Criar campanha
-async function criarCampanha() {
-    const payload = {
-        nome: nome.value,
-        meta_sla: meta_sla.value,
-        periodo: periodo.value
-    };
+async function criarCampanha(){
+  const payload = {
+    nome: nome.value,
+    periodo_inicio: inicio.value,
+    periodo_fim: fim.value,
+    meta_sla: meta_sla.value,
+    tema: tema.value
+  };
 
-    await fetch("/api/campanhas/criar", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(payload)
-    });
+  await fetch("/api/campanhas/criar", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify(payload)
+  });
 
-    alert("Campanha criada!");
-    carregarCampanhas();
+  alert("Campanha criada!");
+  carregarCampanhas();
+}
+
+// Ativar
+async function ativarCampanha(id){
+  await fetch("/api/campanhas/ativar", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ campanha_id:id })
+  });
+  carregarCampanhas();
+}
+
+// Desativar campanha ativa
+async function desativarCampanha(){
+  await fetch("/api/campanhas/desativar", { method:"POST" });
+  carregarCampanhas();
 }
 
 // Listar campanhas
-async function carregarCampanhas() {
-    const res = await fetch("/api/campanhas/listar");
-    const lista = await res.json();
+async function carregarCampanhas(){
+  const res = await fetch("/api/campanhas/listar");
+  const lista = await res.json();
 
-    listaCampanhas.innerHTML = "";
+  listaCampanhas.innerHTML = "";
 
-    lista.forEach(c => {
-        listaCampanhas.innerHTML += `
-            <tr>
-                <td>${c.nome}</td>
-                <td>${c.meta_sla}%</td>
-                <td>${c.periodo}</td>
-                <td>
-                    ${c.ativa == 1 
-                        ? "<span class='status-ativa'>ATIVA</span>"
-                        : "<span class='status-inativa'>INATIVA</span>"
-                    }
-                </td>
-                <td>
-                    ${c.ativa == 1 
-                        ? `<button class="action-btn dst" onclick="desativarCampanha()">Desativar</button>`
-                        : `<button class="action-btn atv" onclick="ativarCampanha(${c.id})">Ativar</button>`
-                    }
-                </td>
-            </tr>
-        `;
-    });
-}
-
-// Ativar campanha
-async function ativarCampanha(id) {
-    await fetch("/api/campanhas/ativar", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ id })
-    });
-
-    carregarCampanhas();
-}
-
-// Desativar campanha (todas)
-async function desativarCampanha() {
-    await fetch("/api/campanhas/desativar", {
-        method: "POST"
-    });
-
-    carregarCampanhas();
+  lista.forEach(c => {
+    listaCampanhas.innerHTML += `
+      <tr>
+        <td>${c.id}</td>
+        <td>${c.nome}</td>
+        <td>${c.periodo_inicio} até ${c.periodo_fim}</td>
+        <td>${c.meta_sla}%</td>
+        <td>${c.ativa == 1 ? "<span class='status-on'>SIM</span>" : "<span class='status-off'>NÃO</span>"}</td>
+        <td>
+            ${c.ativa == 1 
+              ? `<button class="action-btn dst" onclick="desativarCampanha()">Desativar</button>`
+              : `<button class="action-btn atv" onclick="ativarCampanha(${c.id})">Ativar</button>`
+            }
+        </td>
+      </tr>
+    `;
+  });
 }
 
 carregarCampanhas();
