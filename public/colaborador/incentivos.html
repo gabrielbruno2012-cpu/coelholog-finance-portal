@@ -1,199 +1,251 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Incentivos | CoelhoLog</title>
-    <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<title>Incentivos & Metas</title>
+<link rel="stylesheet" href="/css/style.css">
 
-    <style>
-        body {
-            background: #061b34;
-            color: #fff;
-            font-family: 'Inter', sans-serif;
-        }
+<style>
+/* Layout geral */
+.main {
+  padding: 30px;
+  color: #fff;
+}
 
-        .inc-container {
-            padding: 30px;
-            max-width: 1200px;
-            margin: auto;
-        }
+.card {
+  background: #0c1b33;
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 25px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
 
-        .inc-title {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
+.card h2 {
+  margin-top: 0;
+  font-size: 20px;
+}
 
-        .inc-top-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
+/* Cards superiores */
+.top-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
 
-        .inc-card {
-            background: #0d2a4d;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0px 6px 20px rgba(0,0,0,0.2);
-        }
+.top-card {
+  background: #0d2040;
+  padding: 20px;
+  border-radius: 12px;
+}
 
-        .inc-card-title {
-            font-size: 16px;
-            opacity: .8;
-        }
+.top-card .value {
+  font-size: 26px;
+  font-weight: bold;
+  color: #ffd34f;
+}
 
-        .inc-card-value {
-            margin-top: 10px;
-            font-size: 32px;
-            font-weight: bold;
-        }
+/* Barra de progresso */
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  background: #334;
+  margin-top: 10px;
+}
 
-        .inc-progress {
-            margin-top: 15px;
-            width: 100%;
-            height: 10px;
-            background: #10345d;
-            border-radius: 10px;
-            overflow: hidden;
-        }
+.progress {
+  height: 10px;
+  border-radius: 5px;
+  background: #ffd34f;
+  width: 0%;
+}
 
-        .inc-progress-bar {
-            height: 100%;
-            width: 0%;
-            background: #ffd000;
-            transition: .6s;
-        }
+/* Ranking */
+.ranking-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #223;
+}
 
-        .inc-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 15px;
-            background: #ffd000;
-            padding: 8px 14px;
-            border-radius: 50px;
-            font-size: 14px;
-            color: #000;
-            font-weight: 600;
-        }
+/* Bônus */
+.bonus-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+</style>
 
-        .inc-history {
-            margin-top: 35px;
-            background: #0d2a4d;
-            padding: 20px;
-            border-radius: 12px;
-        }
-
-        .history-row {
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-    </style>
 </head>
 <body>
 
-<div class="inc-container">
+<div id="sidebar-container"></div>
 
-    <div class="inc-title">Incentivos do Colaborador</div>
+<main class="main">
 
-    <!-- TOP CARDS -->
-    <div class="inc-top-grid">
-        
-        <div class="inc-card">
-            <div class="inc-card-title">Total de Pontos</div>
-            <div id="pontosValue" class="inc-card-value">0 pts</div>
-            <div class="inc-progress">
-                <div id="progressBar" class="inc-progress-bar"></div>
-            </div>
-        </div>
+<h1>Incentivos & Metas</h1>
+<p>Acompanhe sua pontuação, metas da semana e bônus estimados dentro da CoelhoLog.</p>
 
-        <div class="inc-card">
-            <div class="inc-card-title">Meta Mensal</div>
-            <div id="metaValue" class="inc-card-value">1000 pts</div>
-            <div id="campaignName" class="inc-pill"><span class="inc-pill-badge"></span>Aguardando...</div>
-        </div>
+<!-- ===============================
+     4 cards superiores
+================================== -->
+<div class="top-grid">
+  <div class="top-card">
+    <h4>Pontuação Atual</h4>
+    <div class="value" id="pontos_atual">0 pts</div>
+    <small>Atualiza ao final de cada dia</small>
+  </div>
 
-        <div class="inc-card">
-            <div class="inc-card-title">SLA do Período</div>
-            <div id="slaValue" class="inc-card-value">--%</div>
-        </div>
-    </div>
+  <div class="top-card">
+    <h4>Meta da Semana</h4>
+    <div class="value" id="meta_semana">0%</div>
+    <small>Você está perto de bater a meta</small>
+  </div>
 
-    <!-- HISTÓRICO -->
-    <div class="inc-history">
-        <h3>Histórico de Pontos</h3>
-        <div id="historyList"></div>
-    </div>
+  <div class="top-card">
+    <h4>Entregas no Prazo</h4>
+    <div class="value" id="entregas_prazo">0%</div>
+    <small>Últimos 30 dias</small>
+  </div>
 
+  <div class="top-card">
+    <h4>Bônus Estimado</h4>
+    <div class="value" id="bonus_estimado">R$ 0,00</div>
+    <small>Se mantiver a performance</small>
+  </div>
 </div>
 
+<br>
+
+<!-- ===============================
+     Meta da Semana
+================================== -->
+<div class="card">
+  <h2>Meta desta semana</h2>
+  <div id="meta_info">Carregando...</div>
+
+  <div class="progress-bar">
+    <div class="progress" id="progress_meta"></div>
+  </div>
+
+  <ul>
+    <li>Manter &gt; 95% entregas no prazo</li>
+    <li>Zero incidentes críticos registrados</li>
+    <li>Comprovação de entrega em foto em todas as rotas</li>
+  </ul>
+</div>
+
+<!-- ===============================
+     Histórico de Bônus
+================================== -->
+<div class="card">
+  <h2>Histórico de bônus</h2>
+  <div id="bonus_lista">Carregando...</div>
+</div>
+
+<!-- ===============================
+     Ranking
+================================== -->
+<div class="card">
+  <h2>Ranking CoelhoLog</h2>
+  <div id="ranking_lista">Carregando...</div>
+</div>
+
+</main>
+
+
 <script>
-const user = JSON.parse(localStorage.getItem("usuario"));
-const userId = user?.id;
+// Sidebar
+fetch('/components/sidebar_colaborador.html')
+  .then(r => r.text())
+  .then(html => document.getElementById("sidebar-container").innerHTML = html);
 
-// =========================================================
-//   1. CARREGA PONTOS DO COLABORADOR
-// =========================================================
-fetch(`/api/incentivos/pontos/${userId}`)
-    .then(r => r.json())
-    .then(data => {
-        const pontos = data?.points || 0;
-        const meta = 1000; // meta fixa ou dinâmica futuramente
+// ---------------------------
+// Variáveis
+// ---------------------------
+let userId = localStorage.getItem("user_id");
 
-        document.getElementById("pontosValue").innerHTML = `${pontos} pts`;
-        document.getElementById("metaValue").innerHTML = `${meta} pts`;
+// --------------------------------
+// 1. Pontos do colaborador
+// --------------------------------
+async function carregarPontos() {
+  const res = await fetch(`/api/incentivos/pontos/usuario?courier_id=${userId}`);
+  const dados = await res.json();
 
-        const progress = Math.min((pontos / meta) * 100, 100);
-        document.getElementById("progressBar").style.width = progress + "%";
-    });
+  let total = 0;
+  dados.forEach(p => total += Number(p.pontos));
 
+  document.getElementById("pontos_atual").innerText = total + " pts";
+}
 
-// =========================================================
-//   2. CARREGA CAMPANHAS ATIVAS
-// =========================================================
-fetch(`/api/incentivos/campanhas`)
-    .then(r => r.json())
-    .then(campanhas => {
-        if (!campanhas.length) return;
-        document.getElementById("campaignName").innerHTML =
-            `<span class='inc-pill-badge'></span> ${campanhas[0].title}`;
-    });
+// --------------------------------
+// 2. Histórico de Bônus
+// --------------------------------
+async function carregarBonus() {
+  const res = await fetch(`/api/incentivos/bonus/usuario?courier_id=${userId}`);
+  const lista = await res.json();
 
+  const area = document.getElementById("bonus_lista");
+  area.innerHTML = "";
 
-// =========================================================
-//   3. SLA ATUAL DO PERÍODO
-// =========================================================
-fetch(`/api/incentivos/sla`)
-    .then(r => r.json())
-    .then(s => {
-        if (!s?.length) return;
-        document.getElementById("slaValue").innerHTML = s[0].sla_percent + "%";
-    });
+  lista.forEach(b => {
+    area.innerHTML += `
+      <div class="bonus-item">
+        <div>${b.titulo}</div>
+        <div><b>R$ ${b.valor.toFixed(2)}</b></div>
+      </div>
+    `;
+  });
+}
 
+// --------------------------------
+// 3. Meta / Campanha ativa
+// --------------------------------
+async function carregarMeta() {
+  const res = await fetch("/api/campanhas/ativa");
+  const c = await res.json();
 
-// =========================================================
-//   4. HISTÓRICO DO COLABORADOR
-// =========================================================
-fetch(`/api/incentivos/historico/${userId}`)
-    .then(r => r.json())
-    .then(rows => {
-        const historyDiv = document.getElementById("historyList");
-        historyDiv.innerHTML = "";
+  if (!c || !c.id) return;
 
-        if (!rows.length) {
-            historyDiv.innerHTML = "<p>Nenhum histórico encontrado.</p>";
-            return;
-        }
+  document.getElementById("meta_semana").innerText = c.meta_sla + "%";
+  document.getElementById("meta_info").innerText =
+    `Meta: ${c.meta_sla}% no prazo`;
 
-        rows.forEach(h => {
-            historyDiv.innerHTML += `
-                <div class="history-row">
-                    <b>+${h.points} pts</b> — ${h.description} <br>
-                    <span style="opacity:.6">${h.created_at}</span>
-                </div>`;
-        });
-    });
+  // Simulação da barra (pode ajustar)
+  document.getElementById("progress_meta").style.width = c.meta_sla + "%";
+}
+
+// --------------------------------
+// 4. Ranking
+// --------------------------------
+async function carregarRanking() {
+  const campanha = await fetch("/api/campanhas/ativa").then(r => r.json());
+  if (!campanha?.id) return;
+
+  const res = await fetch(`/api/campanha/ranking?campanha_id=${campanha.id}`);
+  const lista = await res.json();
+
+  const area = document.getElementById("ranking_lista");
+  area.innerHTML = "";
+
+  lista.forEach((r, index) => {
+    area.innerHTML += `
+      <div class="ranking-item">
+        <span>#${index + 1} ${r.nome}</span>
+        <span>${r.pontos_total} pts</span>
+      </div>
+    `;
+  });
+}
+
+// --------------------------------
+// Carregar tudo
+// --------------------------------
+carregarPontos();
+carregarBonus();
+carregarMeta();
+carregarRanking();
+
 </script>
-
 </body>
 </html>
