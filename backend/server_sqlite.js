@@ -596,29 +596,42 @@ app.get("/api/campanhas/ativa", (req, res) => {
     });
 });
 
+// ==========================
+//  Registrar SLA
+// ==========================
 app.post("/api/campanha/sla/registrar", (req, res) => {
     const { campanha_id, periodo, sla_percentual } = req.body;
 
-    const sql = `
-        INSERT INTO campanha_sla (campanha_id, periodo, sla_percentual)
-        VALUES (?, ?, ?)
-    `;
-
-    db.run(sql, [campanha_id, periodo, sla_percentual], function(err){
-        if(err) return res.status(500).json({ erro: err.message });
-
-        res.json({ sucesso: true, id: this.lastID });
+    db.run(`
+        INSERT INTO campanha_sla (campanha_id, periodo, sla_percentual, criado_em)
+        VALUES (?, ?, ?, datetime('now'))
+    `,
+    [campanha_id, periodo, sla_percentual],
+    (err) => {
+        if (err) return res.status(500).json({ erro: err.message });
+        res.json({ sucesso: true });
     });
 });
 
+// ==========================
+//  Listar SLA da campanha
+// ==========================
 app.get("/api/campanha/sla/listar", (req, res) => {
     const campanha_id = req.query.campanha_id;
 
-    db.all("SELECT * FROM campanha_sla WHERE campanha_id = ?", [campanha_id], (err, rows) => {
-        if(err) return res.status(500).json({ erro: err.message });
+    db.all(`
+        SELECT id, campanha_id, periodo, sla_percentual, criado_em
+        FROM campanha_sla
+        WHERE campanha_id = ?
+        ORDER BY id DESC
+    `,
+    [campanha_id],
+    (err, rows) => {
+        if (err) return res.status(500).json({ erro: err.message });
         res.json(rows);
     });
 });
+
 
 app.post("/api/incentivos/pontos/registrar", (req, res) => {
     const { courier_id, campanha_id, pontos, motivo } = req.body;
