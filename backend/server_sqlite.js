@@ -659,19 +659,34 @@ app.get("/api/incentivos/pontos/usuario", (req, res) => {
 });
 
 app.post("/api/incentivos/bonus/registrar", (req, res) => {
-    const { courier_id, campanha_id, titulo, valor } = req.body;
+    const { campanha_id, titulo, descricao, valor } = req.body;
 
-    const sql = `
-        INSERT INTO bonus_historico (courier_id, campanha_id, titulo, valor)
+    db.run(`
+        INSERT INTO campanha_bonus (campanha_id, titulo, descricao, valor)
         VALUES (?, ?, ?, ?)
-    `;
-
-    db.run(sql, [courier_id, campanha_id, titulo, valor], function(err){
+    `,
+    [campanha_id, titulo, descricao, valor],
+    function(err){
         if(err) return res.status(500).json({ erro: err.message });
-        
-        res.json({ sucesso: true });
+        res.json({ sucesso: true, id: this.lastID });
     });
 });
+
+app.get("/api/incentivos/bonus/listar", (req, res) => {
+    db.all(`
+        SELECT campanha_bonus.*
+        FROM campanha_bonus
+        JOIN campanhas ON campanhas.id = campanha_bonus.campanha_id
+        WHERE campanhas.ativa = 1
+        ORDER BY campanha_bonus.id DESC
+    `,
+    [],
+    (err, rows) => {
+        if(err) return res.status(500).json({ erro: err.message });
+        res.json(rows);
+    });
+});
+
 
 app.get("/api/incentivos/bonus/usuario", (req, res) => {
     const courier_id = req.query.courier_id;
