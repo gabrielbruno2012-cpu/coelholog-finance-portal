@@ -650,13 +650,22 @@ app.post("/api/incentivos/pontos/registrar", (req, res) => {
 
 
 app.get("/api/incentivos/pontos/usuario", (req, res) => {
-    const courier_id = req.query.courier_id;
+    const { courier_id } = req.query;
 
-    db.all("SELECT * FROM incentivos_pontos WHERE courier_id = ?", [courier_id], (err, rows) => {
-        if(err) return res.status(500).json({ erro: err.message });
-        res.json(rows);
+    db.all(`
+        SELECT pontos 
+        FROM campanha_pontos
+        WHERE courier_id = ?
+    `, [courier_id], (err, rows) => {
+
+        if (err) return res.status(500).json({ erro: err.message });
+
+        const total = rows.reduce((acc, x) => acc + Number(x.pontos), 0);
+
+        res.json({ total, detalhes: rows });
     });
 });
+
 
 app.post("/api/incentivos/bonus/registrar", (req, res) => {
     const { campanha_id, titulo, descricao, valor, data } = req.body;
