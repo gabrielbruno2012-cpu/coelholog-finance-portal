@@ -20,6 +20,12 @@
   box-shadow: 0 0 10px rgba(0,0,0,0.2);
 }
 
+.card h2 {
+  margin-top: 0;
+  font-size: 20px;
+}
+
+/* Cards superiores */
 .top-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -38,6 +44,7 @@
   color: #ffd34f;
 }
 
+/* Barra de progresso */
 .progress-bar {
   width: 100%;
   height: 10px;
@@ -53,6 +60,7 @@
   width: 0%;
 }
 
+/* Ranking */
 .ranking-item {
   display: flex;
   justify-content: space-between;
@@ -60,12 +68,14 @@
   border-bottom: 1px solid #223;
 }
 
+/* Bônus */
 .bonus-item {
   display: flex;
   justify-content: space-between;
   margin-bottom: 12px;
 }
 
+/* CARD NOVO: METAS SEMANAIS */
 .goal-card {
   background: #0d2040;
   border-radius: 12px;
@@ -84,8 +94,8 @@
   opacity: 0.9;
 }
 </style>
-</head>
 
+</head>
 <body>
 
 <div id="sidebar-container"></div>
@@ -99,7 +109,6 @@
      4 cards superiores
 ================================== -->
 <div class="top-grid">
-
   <div class="top-card">
     <h4>Pontuação Atual</h4>
     <div class="value" id="pontos_atual">0 pts</div>
@@ -108,13 +117,13 @@
 
   <div class="top-card">
     <h4>Meta da Campanha</h4>
-    <div class="value" id="meta_semana">0%</div>
-    <small id="meta_subtexto">Carregando...</small>
+    <div class="value" id="meta_campanha">0%</div>
+    <small id="meta_campanha_desc"></small>
   </div>
 
   <div class="top-card">
     <h4>SLA Atual</h4>
-    <div class="value" id="entregas_prazo">0%</div>
+    <div class="value" id="sla_atual">0%</div>
     <small>Último SLA registrado</small>
   </div>
 
@@ -123,18 +132,19 @@
     <div class="value" id="bonus_estimado">R$ 0,00</div>
     <small>Com base na campanha</small>
   </div>
-
 </div>
 
 <br>
 
-<!-- CARD: Metas da Semana -->
+<!-- Metas da Semana -->
 <div class="card goal-card">
   <div class="goal-title">🎯 Metas da Semana</div>
-  <div id="goal_list"></div>
+  <div id="goal_list">
+    Carregando metas...
+  </div>
 </div>
 
-<!-- CARD: Progresso SLA -->
+<!-- Barra SLA -->
 <div class="card">
   <h2>SLA — Progresso da Meta</h2>
   <div id="meta_info">Carregando...</div>
@@ -159,60 +169,120 @@
 </main>
 
 <script>
-// Carrega Sidebar
+// Sidebar
 fetch('/components/sidebar_colaborador.html')
   .then(r => r.text())
   .then(html => document.getElementById("sidebar-container").innerHTML = html);
 
+// ---------------------------
+// Variáveis
+// ---------------------------
 let userId = localStorage.getItem("user_id");
 
-
-// ===============================================================
-// 1. Pontuação do colaborador
-// ===============================================================
+//-------------------------------------------------------
+// 1. PONTUAÇÃO ATUAL
+//-------------------------------------------------------
 async function carregarPontos() {
   const res = await fetch(`/api/incentivos/pontos/usuario?courier_id=${userId}`);
   const dados = await res.json();
-  let total = dados.reduce((sum, p) => sum + Number(p.pontos), 0);
-  document.getElementById("pontos_atual").innerText = total + " pts";
+
+  document.getElementById("pontos_atual").innerText = dados.total + " pts";
 }
 
-
-// ===============================================================
-// 2. Bônus estimado (somando valores ativos)
-// ===============================================================
-async function carregarBonus() {
+//-------------------------------------------------------
+// 2. CARREGAR CAMPANHA ATIVA
+//-------------------------------------------------------
+async function carregarCampanha() {
   const campanha = await fetch("/api/campanhas/ativa").then(r => r.json());
+  return campanha;
+}
+
+//-------------------------------------------------------
+// 3. SLA E META DA CAMPANHA
+//-------------------------------------------------------
+async function carregarMeta() {
+  const campanha = await carregarCampanha();
+  if (!campanha?.id) return;
+
+  document.getElementById("meta_campanha").innerText = campanha.meta_sla + "%";
+  document.getElementById("meta_campanha_desc").innerText = campanha.nome + " SLA " + campanha.meta_sla + "%";
+
+  const res = await fetch(`/api/campanha/sla/listar?campanha_id=${campanha.id}`);
+  const lista = await res.json();
+
+  if (lista.length === 0) return;
+
+  const ultimo = lista[lista.length - 1];
+  const sla = Number(ultimo.sla_percentual);
+
+  document.getElementById("sla_atual").innerText = sla + "%";
+
+  document.getElementById("meta_info").innerText =
+    `Meta SLA da campanha: ${campanha.meta_sla}% • SLA da semana: ${sla}%`;
+
+  document.getElementById("progress_meta").style.width = sla + "%";
+}
+
+//-------------------------------------------------------
+// 4. BONUS
+//-------------------------------------------------------
+async function carregarBonus() {
+  const campanha = await carregarCampanha();
   if (!campanha?.id) return;
 
   const res = await fetch(`/api/campanha/bonus/listar?campanha_id=${campanha.id}`);
   const lista = await res.json();
 
-  let totalEstimado = lista.reduce((s, b) => s + Number(b.valor), 0);
-
-  document.getElementById("bonus_estimado").innerText =
-    "R$ " + totalEstimado.toFixed(2);
-
-  // Renderizar lista de bônus
   const div = document.getElementById("bonus_lista");
   div.innerHTML = "";
 
+  if (lista.length === 0) {
+    div.innerHTML = "<p>Nenhum bônus cadastrado.</p>";
+    return;
+  }
+
+  let totalEstimado = 0;
+
   lista.forEach(b => {
+    totalEstimado += Number(b.valor);
+
     div.innerHTML += `
-      <div style="margin-bottom:12px;">
-        <div style="font-weight:600;">${b.titulo}</div>
-        <div style="opacity:0.8; font-size:13px;">${b.descricao}</div>
-        <div style="color:#ffd34f; font-weight:bold;">R$ ${b.valor}</div>
-        <hr style="opacity:.12;">
+      <div class="bonus-item">
+        <div>
+          <strong>${b.titulo}</strong><br>
+          <small>${b.descricao}</small>
+        </div>
+        <strong style="color:#ffd34f;">R$ ${Number(b.valor).toFixed(2)}</strong>
+      </div>`;
+  });
+
+  document.getElementById("bonus_estimado").innerText =
+    "R$ " + totalEstimado.toFixed(2);
+}
+
+//-------------------------------------------------------
+// 5. Ranking
+//-------------------------------------------------------
+async function carregarRanking() {
+  const res = await fetch(`/api/campanha/ranking`);
+  const lista = await res.json();
+
+  const div = document.getElementById("ranking_lista");
+  div.innerHTML = "";
+
+  lista.forEach((r, index) => {
+    div.innerHTML += `
+      <div class="ranking-item">
+        <span>#${index + 1} ${r.nome}</span>
+        <span>${r.pontos_total} pts</span>
       </div>
     `;
   });
 }
 
-
-// ===============================================================
-// 3. Metas escritas (fixas)
-// ===============================================================
+//-------------------------------------------------------
+// 6. Metas semanais fixas
+//-------------------------------------------------------
 async function carregarMetasSemana() {
   const metas = [
     "Manter SLA acima da meta semanal estabelecida",
@@ -220,78 +290,23 @@ async function carregarMetasSemana() {
     "100% das entregas com foto",
     "Alta produtividade e engajamento"
   ];
-  document.getElementById("goal_list").innerHTML =
-    metas.map(m => `<div class='goal-item'>• ${m}</div>`).join("");
+
+  let html = "";
+  metas.forEach(m => html += `<div class="goal-item">• ${m}</div>`);
+
+  document.getElementById("goal_list").innerHTML = html;
 }
 
-
-// ===============================================================
-// 4. SLA / Meta da Campanha / Progresso C
-// ===============================================================
-async function carregarMeta() {
-  const campanha = await fetch("/api/campanhas/ativa").then(r => r.json());
-  if (!campanha?.id) return;
-
-  const res = await fetch(`/api/campanha/sla/listar?campanha_id=${campanha.id}`);
-  const lista = await res.json();
-  if (lista.length === 0) return;
-
-  // Sempre pegar o SLA mais recente
-  const ultimo = lista.sort((a,b) => b.id - a.id)[0];
-
-  let slaSemana = Number(ultimo.sla_percentual);
-  let metaCampanha = Number(campanha.meta_sla);
-
-  // PROGRESSO = C
-  let progresso = Math.min((slaSemana / metaCampanha) * 100, 100).toFixed(0);
-
-  // Atualizar cards
-  document.getElementById("meta_semana").innerText = progresso + "%";
-  document.getElementById("meta_subtexto").innerText =
-    `Meta ${metaCampanha}% • Semana ${slaSemana}%`;
-
-  document.getElementById("entregas_prazo").innerText = slaSemana + "%";
-
-  document.getElementById("meta_info").innerText =
-    `Meta SLA da campanha: ${metaCampanha}% • SLA da semana: ${slaSemana}%`;
-
-  document.getElementById("progress_meta").style.width = progresso + "%";
-}
-
-
-// ===============================================================
-// 5. Ranking corrigido
-// ===============================================================
-async function carregarRanking() {
-  const campanha = await fetch("/api/campanhas/ativa").then(r => r.json());
-  if (!campanha?.id) return;
-
-  const res = await fetch(`/api/campanha/ranking?campanha_id=${campanha.id}`);
-  const lista = await res.json();
-
-  const div = document.getElementById("ranking_lista");
-  div.innerHTML = "";
-
-  lista.forEach((r, i) => {
-    div.innerHTML += `
-      <div class="ranking-item">
-        <span>#${i + 1} ${r.nome}</span>
-        <span>${r.pontos_total} pts</span>
-      </div>
-    `;
-  });
-}
-
-
-// ===============================================================
-// Carregar tudo
-// ===============================================================
+//-------------------------------------------------------
+// Iniciar tudo
+//-------------------------------------------------------
 carregarPontos();
-carregarBonus();
-carregarMetasSemana();
 carregarMeta();
+carregarBonus();
 carregarRanking();
+carregarMetasSemana();
 
 </script>
+
 </body>
 </html>
