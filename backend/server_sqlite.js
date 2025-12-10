@@ -794,19 +794,23 @@ app.post("/api/campanha/ranking/recalcular", (req, res) => {
 });
 
 app.get("/api/campanha/ranking", (req, res) => {
-    const campanha_id = req.query.campanha_id;
 
     db.all(`
-        SELECT cr.*, u.nome
-        FROM campanha_ranking cr
-        JOIN usuarios u ON u.id = cr.courier_id
-        WHERE campanha_id = ?
-        ORDER BY posicao ASC
-    `, [campanha_id], (err, rows) => {
-        if(err) return res.status(500).json({ erro: err.message });
+        SELECT 
+            usuarios.nome,
+            SUM(campanha_pontos.pontos) AS pontos_total
+        FROM campanha_pontos
+        JOIN usuarios ON usuarios.id = campanha_pontos.courier_id
+        GROUP BY campanha_pontos.courier_id
+        ORDER BY pontos_total DESC
+    `, [], (err, rows) => {
+
+        if (err) return res.status(500).json({ erro: err.message });
+
         res.json(rows);
     });
 });
+
 
 // ======================================
 // API - REGISTRAR PONTOS - LISTA DE USUARIO
