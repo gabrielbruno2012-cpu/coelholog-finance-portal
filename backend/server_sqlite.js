@@ -659,33 +659,90 @@ app.get("/api/incentivos/pontos/usuario", (req, res) => {
 });
 
 app.post("/api/incentivos/bonus/registrar", (req, res) => {
-    const { campanha_id, titulo, descricao, valor } = req.body;
+    const { campanha_id, titulo, descricao, valor, data } = req.body;
 
     db.run(`
-        INSERT INTO campanha_bonus (campanha_id, titulo, descricao, valor)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO campanha_bonus 
+        (campanha_id, titulo, descricao, valor, data, ativo, criado_em)
+        VALUES (?, ?, ?, ?, ?, 1, CURRENT_TIMESTAMP)
     `,
-    [campanha_id, titulo, descricao, valor],
+    [campanha_id, titulo, descricao, valor, data],
     function(err){
-        if(err) return res.status(500).json({ erro: err.message });
+        if (err) return res.status(500).json({ erro: err.message });
         res.json({ sucesso: true, id: this.lastID });
     });
 });
 
+
 app.get("/api/incentivos/bonus/listar", (req, res) => {
+    const { campanha_id } = req.query;
+
     db.all(`
-        SELECT campanha_bonus.*
+        SELECT * 
         FROM campanha_bonus
-        JOIN campanhas ON campanhas.id = campanha_bonus.campanha_id
-        WHERE campanhas.ativa = 1
-        ORDER BY campanha_bonus.id DESC
+        WHERE campanha_id = ?
+        ORDER BY id DESC
     `,
-    [],
+    [campanha_id],
     (err, rows) => {
-        if(err) return res.status(500).json({ erro: err.message });
+        if (err) return res.status(500).json({ erro: err.message });
         res.json(rows);
     });
 });
+
+app.put("/api/incentivos/bonus/editar", (req, res) => {
+    const { id, titulo, descricao, valor, data } = req.body;
+
+    db.run(`
+        UPDATE campanha_bonus
+        SET titulo = ?, descricao = ?, valor = ?, data = ?
+        WHERE id = ?
+    `,
+    [titulo, descricao, valor, data, id],
+    function(err){
+        if (err) return res.status(500).json({ erro: err.message });
+        res.json({ sucesso: true });
+    });
+});
+
+app.put("/api/incentivos/bonus/status", (req, res) => {
+    const { id, ativo } = req.body;
+
+    db.run(`
+        UPDATE campanha_bonus
+        SET ativo = ?
+        WHERE id = ?
+    `,
+    [ativo, id],
+    function(err){
+        if (err) return res.status(500).json({ erro: err.message });
+        res.json({ sucesso: true });
+    });
+});
+
+app.get("/api/incentivos/bonus/colaborador", async (req, res) => {
+
+    // 1 — Buscar campanha ativa
+    db.get(`SELECT id FROM campanhas WHERE ativa = 1`, [], (err, campanha) => {
+        if (err) return res.status(500).json({ erro: err.message });
+
+        if (!campanha) return res.json([]);
+
+        // 2 — Buscar bônus ativos dessa campanha
+        db.all(`
+            SELECT titulo, descricao, valor
+            FROM campanha_bonus
+            WHERE campanha_id = ? AND ativo = 1
+            ORDER BY id DESC
+        `,
+        [campanha.id],
+        (err2, rows) => {
+            if (err2) return res.status(500).json({ erro: err2.message });
+            res.json(rows);
+        });
+    });
+});
+
 
 
 app.get("/api/incentivos/bonus/usuario", (req, res) => {
