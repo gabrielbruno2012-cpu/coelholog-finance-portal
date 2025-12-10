@@ -179,30 +179,66 @@ async function carregarSLA() {
   document.getElementById("progress_meta").style.width = ultimo.sla_percentual + "%";
 }
 
-// ------------------------------------
-// 4. Bônus
-// ------------------------------------
+// ================================
+// 4. CARREGAR BÔNUS + ESTIMATIVA
+// ================================
 async function carregarBonus() {
   const campanha = await fetch("/api/campanhas/ativa").then(r => r.json());
   if (!campanha?.id) return;
 
+  // Carrega bônus cadastrados
   const res = await fetch(`/api/campanha/bonus/listar?campanha_id=${campanha.id}`);
   const lista = await res.json();
+
+  // Carrega SLA da campanha
+  const resSLA = await fetch(`/api/campanha/sla/listar?campanha_id=${campanha.id}`);
+  const slaLista = await resSLA.json();
+  const ultimoSLA = slaLista.length ? Number(slaLista[slaLista.length - 1].sla_percentual) : 0;
+
+  let bonusEstimado = 0;
 
   const div = document.getElementById("bonus_lista");
   div.innerHTML = "";
 
   lista.forEach(b => {
+
+    // ----- REGRAS DE BONUS -----
+    let atingiu = false;
+
+    // Regra 1 — bônus de SLA (ex: "Meta SLA 98%")
+    if (b.titulo.toLowerCase().includes("sla")) {
+        const meta = campanha.meta_sla;
+        if (ultimoSLA >= meta) atingiu = true;
+    }
+
+    // Regra 2 — bônus fixos sem regra específica
+    if (b.titulo.toLowerCase().includes("roteiro")) {
+        // Aqui podemos adicionar regra futura. 
+        // Por enquanto: não soma automaticamente.
+        atingiu = false;
+    }
+
+    // SE O COLABORADOR ATINGIU → soma ao estimado
+    if (atingiu) bonusEstimado += Number(b.valor);
+
+    // Exibir todos os bônus na listagem
     div.innerHTML += `
-      <div>
-        <strong>${b.titulo}</strong><br>
-        <span style="opacity:.7">${b.descricao}</span><br>
-        <span style="color:#ffd34f; font-weight:bold;">R$ ${Number(b.valor).toFixed(2)}</span>
+      <div style="margin-bottom:10px;">
+        <strong>${b.titulo}</strong>
+        <br><span style="opacity:.7">${b.descricao}</span>
+        <br><span style="color:#ffd34f; font-weight:bold;">
+          R$ ${Number(b.valor).toFixed(2)}
+        </span>
         <hr style="opacity:0.1;">
       </div>
     `;
   });
+
+  // Atualiza o card de bônus estimado
+  document.getElementById("bonus_estimado").innerText = 
+    "R$ " + bonusEstimado.toFixed(2).replace(".", ",");
 }
+
 
 // ------------------------------------
 // 5. Ranking (Corrigido)
