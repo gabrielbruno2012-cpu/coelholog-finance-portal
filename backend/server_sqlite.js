@@ -793,23 +793,28 @@ app.post("/api/campanha/ranking/recalcular", (req, res) => {
     });
 });
 
+// RANKING DA CAMPANHA ATIVA
 app.get("/api/campanha/ranking", (req, res) => {
+    const campanha_id = req.query.campanha_id;
 
-    db.all(`
-        SELECT 
-            usuarios.nome,
-            SUM(campanha_pontos.pontos) AS pontos_total
-        FROM campanha_pontos
-        JOIN usuarios ON usuarios.id = campanha_pontos.courier_id
-        GROUP BY campanha_pontos.courier_id
+    const sql = `
+        SELECT u.nome,
+               COALESCE(SUM(p.pontos), 0) AS pontos_total
+        FROM usuarios u
+        LEFT JOIN campanha_pontos p 
+               ON p.courier_id = u.id 
+               AND p.campanha_id = ?
+        GROUP BY u.id
+        HAVING pontos_total > 0
         ORDER BY pontos_total DESC
-    `, [], (err, rows) => {
+    `;
 
-        if (err) return res.status(500).json({ erro: err.message });
-
+    db.all(sql, [campanha_id], (err, rows) => {
+        if(err) return res.status(500).json({ erro: err.message });
         res.json(rows);
     });
 });
+
 
 
 // ======================================
