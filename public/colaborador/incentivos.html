@@ -85,7 +85,7 @@
 
 <br>
 
-<!-- METAS PADRÃO (VISUAL) -->
+<!-- METAS -->
 <div class="card">
   <h2>🎯 Metas da Semana</h2>
   <ul>
@@ -106,7 +106,7 @@
   </div>
 </div>
 
-<!-- BÔNUS -->
+<!-- BONUS -->
 <div class="card">
   <h2>Bônus da Campanha</h2>
   <div id="bonus_lista">Carregando...</div>
@@ -121,32 +121,33 @@
 </main>
 
 <script>
-// Carrega o sidebar
+// Sidebar
 fetch('/components/sidebar_colaborador.html')
   .then(r => r.text())
   .then(html => document.getElementById("sidebar-container").innerHTML = html);
 
-// Obtém ID do colaborador logado
-let userId = localStorage.getItem("user_id");
+// Usuário logado
+const user = JSON.parse(localStorage.getItem("user"));
+const userId = user?.id;
 
-// ================================
-// 1. PONTUAÇÃO ATUAL (CORRIGIDO)
-// ================================
+// ------------------------------------
+// 1. Pontuação Atual (Corrigido)
+// ------------------------------------
 async function carregarPontos() {
   const campanha = await fetch("/api/campanhas/ativa").then(r => r.json());
-  if (!campanha?.id) return;
+  if (!campanha?.id || !userId) return;
 
   const res = await fetch(`/api/incentivos/pontos/usuario?courier_id=${userId}&campanha_id=${campanha.id}`);
   const dados = await res.json();
 
-  let total = dados.reduce((sum, p) => sum + Number(p.pontos), 0);
+  const total = dados.reduce((sum, p) => sum + Number(p.pontos), 0);
 
   document.getElementById("pontos_atual").innerText = total + " pts";
 }
 
-// ================================
-// 2. CARREGAR CAMPANHA ATIVA
-// ================================
+// ------------------------------------
+// 2. Dados da campanha
+// ------------------------------------
 async function carregarCampanha() {
   const campanha = await fetch("/api/campanhas/ativa").then(r => r.json());
   if (!campanha?.id) return;
@@ -155,31 +156,32 @@ async function carregarCampanha() {
   document.getElementById("tema_campanha").innerText = campanha.tema;
 }
 
-// ================================
-// 3. CARREGAR ÚLTIMO SLA REGISTRADO
-// ================================
+// ------------------------------------
+// 3. SLA Atual (Corrigido)
+// ------------------------------------
 async function carregarSLA() {
   const campanha = await fetch("/api/campanhas/ativa").then(r => r.json());
   if (!campanha?.id) return;
 
   const res = await fetch(`/api/campanha/sla/listar?campanha_id=${campanha.id}`);
-  const lista = await res.json();
+  let lista = await res.json();
 
-  if (lista.length === 0) return;
+  if (!lista.length) return;
 
-  const ultimo = lista[lista.length - 1];
+  // PEGA SEMPRE O MAIS RECENTE
+  lista.sort((a, b) => b.id - a.id);
+  const ultimo = lista[0];
 
   document.getElementById("sla_atual").innerText = ultimo.sla_percentual + "%";
-
   document.getElementById("meta_info").innerText =
     `Meta SLA da campanha: ${campanha.meta_sla}% • SLA da semana: ${ultimo.sla_percentual}%`;
 
   document.getElementById("progress_meta").style.width = ultimo.sla_percentual + "%";
 }
 
-// ================================
-// 4. CARREGAR BÔNUS
-// ================================
+// ------------------------------------
+// 4. Bônus
+// ------------------------------------
 async function carregarBonus() {
   const campanha = await fetch("/api/campanhas/ativa").then(r => r.json());
   if (!campanha?.id) return;
@@ -192,7 +194,7 @@ async function carregarBonus() {
 
   lista.forEach(b => {
     div.innerHTML += `
-      <div style="margin-bottom:10px;">
+      <div>
         <strong>${b.titulo}</strong><br>
         <span style="opacity:.7">${b.descricao}</span><br>
         <span style="color:#ffd34f; font-weight:bold;">R$ ${Number(b.valor).toFixed(2)}</span>
@@ -202,23 +204,25 @@ async function carregarBonus() {
   });
 }
 
-// ================================
-// 5. CARREGAR RANKING (CORRIGIDO)
-// ================================
+// ------------------------------------
+// 5. Ranking (Corrigido)
+// ------------------------------------
 async function carregarRanking() {
   const campanha = await fetch("/api/campanhas/ativa").then(r => r.json());
   if (!campanha?.id) return;
 
   const res = await fetch(`/api/campanha/ranking?campanha_id=${campanha.id}`);
-  const lista = await res.json();
+  let lista = await res.json();
 
   const div = document.getElementById("ranking_lista");
   div.innerHTML = "";
 
-  if (lista.length === 0) {
-    div.innerHTML = "<p>Nenhum ponto registrado nesta campanha.</p>";
+  if (!lista.length) {
+    div.innerHTML = "<p>Nenhum ponto registrado.</p>";
     return;
   }
+
+  lista.sort((a, b) => b.pontos_total - a.pontos_total);
 
   lista.forEach((r, index) => {
     div.innerHTML += `
@@ -230,15 +234,12 @@ async function carregarRanking() {
   });
 }
 
-// ================================
-// CARREGAR TUDO
-// ================================
+// ------------------------------------
 carregarPontos();
 carregarCampanha();
 carregarSLA();
 carregarBonus();
 carregarRanking();
-
 </script>
 
 </body>
