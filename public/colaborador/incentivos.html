@@ -61,7 +61,7 @@
   <div class="top-card">
     <h4>Pontuação Atual</h4>
     <div class="value" id="pontos_atual">0 pts</div>
-    <small>Atualiza ao final de cada dia</small>
+    <small>Atualiza ao final de cada Semana</small>
   </div>
 
   <div class="top-card">
@@ -122,7 +122,7 @@
 
 <script>
 // Sidebar
-fetch('/components/sidebar_colaborador.html')
+fetch('/components/sidebar.html')
   .then(r => r.text())
   .then(html => document.getElementById("sidebar-container").innerHTML = html);
 
