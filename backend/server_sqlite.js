@@ -617,14 +617,14 @@ app.post("/api/campanha/sla/registrar", (req, res) => {
 //  Listar SLA da campanha
 // ==========================
 app.get("/api/campanha/sla/listar", (req, res) => {
-    const campanha_id = req.query.campanha_id;
+    const { campanha_id } = req.query;
 
     db.all(`
-        SELECT id, campanha_id, periodo, sla_percentual, criado_em
+        SELECT * 
         FROM campanha_sla
         WHERE campanha_id = ?
         ORDER BY id DESC
-    `,
+    `, 
     [campanha_id],
     (err, rows) => {
         if (err) return res.status(500).json({ erro: err.message });
@@ -650,21 +650,20 @@ app.post("/api/incentivos/pontos/registrar", (req, res) => {
 
 
 app.get("/api/incentivos/pontos/usuario", (req, res) => {
-    const { courier_id } = req.query;
+    const { courier_id, campanha_id } = req.query;
 
     db.all(`
         SELECT pontos 
         FROM campanha_pontos
-        WHERE courier_id = ?
-    `, [courier_id], (err, rows) => {
-
+        WHERE courier_id = ? AND campanha_id = ?
+    `,
+    [courier_id, campanha_id],
+    (err, rows) => {
         if (err) return res.status(500).json({ erro: err.message });
-
-        const total = rows.reduce((acc, x) => acc + Number(x.pontos), 0);
-
-        res.json({ total, detalhes: rows });
+        res.json(rows);
     });
 });
+
 
 
 app.post("/api/incentivos/bonus/registrar", (req, res) => {
