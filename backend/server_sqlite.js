@@ -641,11 +641,12 @@ app.post("/api/incentivos/pontos/registrar", (req, res) => {
         VALUES (?, ?, ?, ?, ?, datetime('now'))
     `,
     [courier_id, campanha_id, periodo, pontos, motivo],
-    err => {
-        if(err) return res.status(500).json({erro: err.message});
-        res.json({sucesso: true});
+    (err) => {
+        if (err) return res.status(500).json({ erro: err.message });
+        res.json({ sucesso: true });
     });
 });
+
 
 
 app.get("/api/incentivos/pontos/usuario", (req, res) => {
@@ -854,10 +855,11 @@ app.get("/api/incentivos/pontos/listar", (req, res) => {
     `,
     [campanha_id],
     (err, rows) => {
-        if(err) return res.status(500).json({erro: err.message});
+        if (err) return res.status(500).json({ erro: err.message });
         res.json(rows);
     });
 });
+
 
 app.put("/api/incentivos/pontos/editar", (req, res) => {
     const { id, pontos } = req.body;
@@ -868,21 +870,26 @@ app.put("/api/incentivos/pontos/editar", (req, res) => {
         WHERE id = ?
     `,
     [pontos, id],
-    err => {
-        if(err) return res.status(500).json({erro: err.message});
-        res.json({sucesso: true});
+    (err) => {
+        if (err) return res.status(500).json({ erro: err.message });
+        res.json({ sucesso: true });
     });
 });
+
 
 app.delete("/api/incentivos/pontos/excluir/:id", (req, res) => {
     const { id } = req.params;
 
-    db.run("DELETE FROM campanha_pontos WHERE id = ?", [id], err => {
-        if(err) return res.status(500).json({erro: err.message});
-        res.json({sucesso: true});
+    db.run(`
+        DELETE FROM campanha_pontos
+        WHERE id = ?
+    `,
+    [id],
+    (err) => {
+        if (err) return res.status(500).json({ erro: err.message });
+        res.json({ sucesso: true });
     });
 });
-
 
 
 // ======================================
