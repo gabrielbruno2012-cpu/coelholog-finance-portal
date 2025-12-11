@@ -1,109 +1,112 @@
 <style>
-/* Sidebar container */
-.sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 230px;
-  height: 100vh;
-  background: #0c1b33;
-  padding-top: 20px;
-  transition: width 0.25s ease;
-  overflow: hidden;
-  z-index: 999;
+/* ==== SIDEBAR ==== */
+.sidebar-colab {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 230px;
+    height: 100vh;
+    background: #07172b;
+    padding-top: 20px;
+    transition: width .25s ease;
+    z-index: 1000;
+    overflow: hidden;
 }
 
-.sidebar.collapsed {
-  width: 70px;
+.sidebar-colab.collapsed {
+    width: 70px;
 }
 
-/* Toggle button */
-.sidebar-toggle {
-  position: absolute;
-  top: 15px;
-  right: -15px;
-  background: #ffd34f;
-  color: #000;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-weight: bold;
+/* ==== BOTÃO DE ABRIR/FECHAR ==== */
+.sidebar-toggle-colab {
+    position: absolute;
+    top: 15px;
+    right: -15px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #ffd34f;
+    color: #000;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2000;
 }
 
-/* Menu */
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-  margin-top: 60px;
+/* ==== LISTA ==== */
+.sidebar-colab ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 60px;
 }
 
-.sidebar ul li {
-  margin-bottom: 15px;
+.sidebar-colab ul li {
+    margin-bottom: 5px;
 }
 
-.sidebar a {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 18px;
-  color: #fff;
-  text-decoration: none;
-  font-size: 15px;
-  white-space: nowrap;
-  transition: opacity .2s;
+.sidebar-colab a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: #fff;
+    text-decoration: none;
+    font-size: 15px;
+    white-space: nowrap;
+    transition: all .2s;
 }
 
-.sidebar.collapsed a span {
-  display: none;
+.sidebar-colab a:hover {
+    background: #0f2344;
 }
 
-.sidebar a:hover {
-  background: #0f2344;
+/* Oculta texto quando recolhido */
+.sidebar-colab.collapsed a span {
+    display: none;
 }
 
-/* Icons only mode */
-.sidebar.collapsed a {
-  justify-content: center;
-  padding: 12px 0;
+/* Centraliza ícones quando recolhido */
+.sidebar-colab.collapsed a {
+    justify-content: center;
+    padding: 12px 0;
 }
 </style>
 
-<div id="sidebar" class="sidebar">
-  <div class="sidebar-toggle" onclick="toggleSidebar()">☰</div>
+<div id="sidebarColab" class="sidebar-colab">
 
-  <ul>
-    <li><a href="/colaborador/dashboard.html">🏠 <span>Dashboard</span></a></li>
-    <li><a href="/colaborador/recebiveis.html">💰 <span>Recebíveis</span></a></li>
-    <li><a href="/colaborador/producao.html">📦 <span>Produção</span></a></li>
-    <li><a href="/colaborador/emprestimos.html">💳 <span>Empréstimos</span></a></li>
-    <li><a href="/colaborador/incentivos.html">🎯 <span>Incentivos & Metas</span></a></li>
-    <li><a href="/logout">🚪 <span>Sair</span></a></li>
-  </ul>
+    <div class="sidebar-toggle-colab" onclick="toggleSidebarColab()">☰</div>
+
+    <ul>
+        <li><a href="/colaborador/dashboard.html">🏠 <span>Dashboard</span></a></li>
+        <li><a href="/colaborador/recebiveis.html">💰 <span>Recebíveis</span></a></li>
+        <li><a href="/colaborador/producao.html">📦 <span>Produção</span></a></li>
+        <li><a href="/colaborador/emprestimos.html">💳 <span>Empréstimos</span></a></li>
+        <li><a href="/colaborador/incentivos.html">🎯 <span>Incentivos & Metas</span></a></li>
+        <li><a href="/logout">🚪 <span>Sair</span></a></li>
+    </ul>
 </div>
 
 <script>
-// Restore saved state
+// Carregar estado salvo
 document.addEventListener("DOMContentLoaded", () => {
-  const sidebar = document.getElementById("sidebar");
-  const saved = localStorage.getItem("sidebar-collapsed");
+    const sidebar = document.getElementById("sidebarColab");
+    const saved = localStorage.getItem("sidebarColabCollapsed");
 
-  if (saved === "true") {
-    sidebar.classList.add("collapsed");
-  }
+    if (saved === "true") {
+        sidebar.classList.add("collapsed");
+    }
 });
 
-function toggleSidebar() {
-  const sidebar = document.getElementById("sidebar");
-  sidebar.classList.toggle("collapsed");
+// Alternar estado
+function toggleSidebarColab() {
+    const sidebar = document.getElementById("sidebarColab");
+    sidebar.classList.toggle("collapsed");
 
-  // Save state
-  localStorage.setItem(
-    "sidebar-collapsed",
-    sidebar.classList.contains("collapsed")
-  );
+    localStorage.setItem(
+        "sidebarColabCollapsed",
+        sidebar.classList.contains("collapsed")
+    );
 }
 </script>
