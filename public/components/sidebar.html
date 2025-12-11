@@ -1,112 +1,29 @@
-<style>
-/* ==== SIDEBAR ==== */
-.sidebar-colab {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 230px;
-    height: 100vh;
-    background: #07172b;
-    padding-top: 20px;
-    transition: width .25s ease;
-    z-index: 1000;
-    overflow: hidden;
-}
 
-.sidebar-colab.collapsed {
-    width: 70px;
-}
-
-/* ==== BOTÃO DE ABRIR/FECHAR ==== */
-.sidebar-toggle-colab {
-    position: absolute;
-    top: 15px;
-    right: -15px;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: #ffd34f;
-    color: #000;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 2000;
-}
-
-/* ==== LISTA ==== */
-.sidebar-colab ul {
-    list-style: none;
-    padding: 0;
-    margin-top: 60px;
-}
-
-.sidebar-colab ul li {
-    margin-bottom: 5px;
-}
-
-.sidebar-colab a {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 20px;
-    color: #fff;
-    text-decoration: none;
-    font-size: 15px;
-    white-space: nowrap;
-    transition: all .2s;
-}
-
-.sidebar-colab a:hover {
-    background: #0f2344;
-}
-
-/* Oculta texto quando recolhido */
-.sidebar-colab.collapsed a span {
-    display: none;
-}
-
-/* Centraliza ícones quando recolhido */
-.sidebar-colab.collapsed a {
-    justify-content: center;
-    padding: 12px 0;
-}
-</style>
-
-<div id="sidebarColab" class="sidebar-colab">
-
-    <div class="sidebar-toggle-colab" onclick="toggleSidebarColab()">☰</div>
-
-    <ul>
-        <li><a href="/colaborador/dashboard.html">🏠 <span>Dashboard</span></a></li>
-        <li><a href="/colaborador/recebiveis.html">💰 <span>Recebíveis</span></a></li>
-        <li><a href="/colaborador/producao.html">📦 <span>Produção</span></a></li>
-        <li><a href="/colaborador/emprestimos.html">💳 <span>Empréstimos</span></a></li>
-        <li><a href="/colaborador/incentivos.html">🎯 <span>Incentivos & Metas</span></a></li>
-        <li><a href="/logout">🚪 <span>Sair</span></a></li>
-    </ul>
+<div class="sidebar">
+  <div class="logo">CoelhoLog</div>
+  <div class="menu">
+    <a href="/colaborador/dashboard.html">🏠 Dashboard</a>
+    <a href="/colaborador/recebiveis.html">💰 Recebíveis</a>
+    <a href="/colaborador/solicitar_emprestimo.html">📝 Solicitar Empréstimo</a>
+    <a href="/colaborador/status_emprestimos.html">📄 Status Empréstimos</a>
+    <div class="menu-title" style="margin-top:10px;color:#98a9bf;font-size:12px">Administração</div>
+    <div id="adminLinks"></div>
+    <div style="margin-top:14px"><a href="/" onclick="logout()">🔓 Logout</a></div>
+  </div>
 </div>
-
 <script>
-// Carregar estado salvo
-document.addEventListener("DOMContentLoaded", () => {
-    const sidebar = document.getElementById("sidebarColab");
-    const saved = localStorage.getItem("sidebarColabCollapsed");
-
-    if (saved === "true") {
-        sidebar.classList.add("collapsed");
-    }
-});
-
-// Alternar estado
-function toggleSidebarColab() {
-    const sidebar = document.getElementById("sidebarColab");
-    sidebar.classList.toggle("collapsed");
-
-    localStorage.setItem(
-        "sidebarColabCollapsed",
-        sidebar.classList.contains("collapsed")
-    );
-}
+(function(){
+  const user = JSON.parse(localStorage.getItem('user')||'null');
+  const adminLinks = document.getElementById('adminLinks');
+  if(user && user.role==='financeiro'){
+    adminLinks.innerHTML = `
+      <a href="/admin/dashboard.html">⚙️ Admin Dashboard</a>
+      <a href="/admin/criar_colaborador.html">👤 Criar Colaborador</a>
+      <a href="/admin/alterar_recebiveis.html">🔄 Alterar Recebíveis</a>
+      <a href="/admin/alterar_emprestimos.html">🔁 Alterar Empréstimos</a>
+      <a href="/admin/lancar_recebiveis.html">➕ Lançar Recebíveis</a>
+`;
+  }
+})();
+function logout(){ localStorage.removeItem('user'); window.location = '/'; }
 </script>
