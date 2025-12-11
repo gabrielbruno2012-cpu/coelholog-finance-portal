@@ -1,114 +1,64 @@
-<style>
-/* =====================
-   SIDEBAR COLABORADOR
-===================== */
+<!-- SIDEBAR COLABORADOR RECOLHÍVEL -->
+<aside class="sidebar" id="sidebar">
+    <div class="logo-area">
+        <span class="logo-icon">🐇</span>
+        <span class="menu-text logo-text">CoelhoLog</span>
+    </div>
 
-#sidebar-colab {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 230px !important;
-    height: 100vh;
-    background: #07172b;
-    padding-top: 20px;
-    transition: width .25s ease !important;
-    overflow: hidden;
-    z-index: 1000;
-}
+    <nav class="menu">
+        <a href="/colaborador/dashboard.html">
+            <span class="icon">🏠</span>
+            <span class="menu-text">Dashboard</span>
+        </a>
 
-#sidebar-colab.collapsed {
-    width: 70px !important;
-}
+        <a href="/colaborador/recebiveis.html">
+            <span class="icon">💰</span>
+            <span class="menu-text">Recebíveis</span>
+        </a>
 
-/* Botão */
-#sidebar-toggle-colab {
-    position: absolute;
-    top: 15px;
-    right: -15px;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: #ffd34f;
-    color: #000;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-}
+        <a href="/colaborador/producao.html">
+            <span class="icon">📦</span>
+            <span class="menu-text">Produção</span>
+        </a>
 
-/* Lista */
-#sidebar-colab ul {
-    list-style: none;
-    margin: 60px 0 0;
-    padding: 0;
-}
+        <a href="/colaborador/emprestimos.html">
+            <span class="icon">💳</span>
+            <span class="menu-text">Empréstimos</span>
+        </a>
 
-#sidebar-colab ul li {
-    margin-bottom: 5px;
-}
+        <a href="/colaborador/incentivos.html">
+            <span class="icon">🎯</span>
+            <span class="menu-text">Incentivos & Metas</span>
+        </a>
 
-#sidebar-colab a {
-    display: flex !important;
-    align-items: center !important;
-    gap: 12px !important;
-    padding: 12px 20px !important;
-    text-decoration: none !important;
-    color: #fff !important;
-    font-size: 15px !important;
-    white-space: nowrap !important;
-    transition: .2s !important;
-}
-
-#sidebar-colab a:hover {
-    background: #0f2344 !important;
-}
-
-/* Esconder texto quando recolhido */
-#sidebar-colab.collapsed a span {
-    display: none !important;
-}
-
-/* Centralizar ícones quando recolhido */
-#sidebar-colab.collapsed a {
-    justify-content: center !important;
-}
-</style>
-
-
-<div id="sidebar-colab">
-
-    <div id="sidebar-toggle-colab" onclick="toggleSidebarColab()">☰</div>
-
-    <ul>
-        <li><a href="/colaborador/dashboard.html">🏠 <span>Dashboard</span></a></li>
-        <li><a href="/colaborador/recebiveis.html">💰 <span>Recebíveis</span></a></li>
-        <li><a href="/colaborador/producao.html">📦 <span>Produção</span></a></li>
-        <li><a href="/colaborador/emprestimos.html">💳 <span>Empréstimos</span></a></li>
-        <li><a href="/colaborador/incentivos.html">🎯 <span>Incentivos & Metas</span></a></li>
-        <li><a href="/logout">🚪 <span>Sair</span></a></li>
-    </ul>
-
-</div>
-
+        <a href="#" onclick="logout()">
+            <span class="icon">🚪</span>
+            <span class="menu-text">Sair</span>
+        </a>
+    </nav>
+</aside>
 
 <script>
-function toggleSidebarColab() {
-    const sb = document.getElementById("sidebar-colab");
-    sb.classList.toggle("collapsed");
+// Alternar sidebar recolhida
+function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const main = document.querySelector(".main");
 
-    localStorage.setItem(
-        "sidebar-colab-collapsed",
-        sb.classList.contains("collapsed")
-    );
+    sidebar.classList.toggle("collapsed");
+    main.classList.toggle("collapsed");
+
+    // Salvar estado do usuário
+    localStorage.setItem("sidebar_collapsed", sidebar.classList.contains("collapsed"));
 }
 
-// Aplicar estado salvo ao carregar
+// Manter estado ao recarregar
 document.addEventListener("DOMContentLoaded", () => {
-    const sb = document.getElementById("sidebar-colab");
-    if (localStorage.getItem("sidebar-colab-collapsed") === "true") {
-        sb.classList.add("collapsed");
+    const collapsed = localStorage.getItem("sidebar_collapsed") === "true";
+
+    if (collapsed) {
+        document.getElementById("sidebar").classList.add("collapsed");
+        const main = document.querySelector(".main");
+        if (main) main.classList.add("collapsed");
     }
 });
 </script>
