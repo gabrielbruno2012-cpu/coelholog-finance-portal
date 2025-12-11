@@ -104,3 +104,16 @@ body{
     border-radius:12px;
     margin-bottom:18px;
 }
+
+/* Sidebar recolhida */
+.sidebar.collapsed {
+    width: 60px;
+}
+
+.sidebar.collapsed .menu-text {
+    display: none;
+}
+
+.sidebar.collapsed .logo-text {
+    display: none;
+}
