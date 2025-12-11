@@ -1,121 +1,109 @@
 <style>
-/* --- CONTAINER DO SIDEBAR --- */
-.sidebar-collab {
-  width: 230px;
-  background: #071e3d;
-  height: 100vh;
+/* Sidebar container */
+.sidebar {
   position: fixed;
-  top: 0;
   left: 0;
-  padding-top: 70px;
-  transition: width .25s ease-in-out;
+  top: 0;
+  width: 230px;
+  height: 100vh;
+  background: #0c1b33;
+  padding-top: 20px;
+  transition: width 0.25s ease;
   overflow: hidden;
-  z-index: 50;
+  z-index: 999;
 }
 
-.sidebar-collab.collapsed {
+.sidebar.collapsed {
   width: 70px;
 }
 
-/* --- BOTÃO HAMBURGUER --- */
-.menu-toggle {
-  position: fixed;
+/* Toggle button */
+.sidebar-toggle {
+  position: absolute;
   top: 15px;
-  left: 15px;
-  font-size: 26px;
+  right: -15px;
+  background: #ffd34f;
+  color: #000;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  color: white;
-  z-index: 100;
+  font-weight: bold;
 }
 
-/* --- LISTA --- */
-.sidebar-collab ul {
+/* Menu */
+.sidebar ul {
   list-style: none;
   padding: 0;
+  margin-top: 60px;
 }
 
-.sidebar-collab li {
-  padding: 15px 15px;
-  color: white;
-  cursor: pointer;
+.sidebar ul li {
+  margin-bottom: 15px;
+}
+
+.sidebar a {
   display: flex;
   align-items: center;
   gap: 12px;
-  transition: background .2s;
+  padding: 12px 18px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 15px;
   white-space: nowrap;
+  transition: opacity .2s;
 }
 
-.sidebar-collab li:hover {
-  background: #0a2b5c;
-}
-
-.sidebar-collab i {
-  font-style: normal;
-  font-size: 20px;
-}
-
-/* --- TEXTO SOME QUANDO FECHA --- */
-.sidebar-collab.collapsed span {
+.sidebar.collapsed a span {
   display: none;
 }
 
-/* --- AJUSTE DO MAIN --- */
-.main {
-  margin-left: 230px;
-  transition: margin-left .25s;
+.sidebar a:hover {
+  background: #0f2344;
 }
 
-.main.collapsed {
-  margin-left: 70px;
+/* Icons only mode */
+.sidebar.collapsed a {
+  justify-content: center;
+  padding: 12px 0;
 }
-
 </style>
 
-<div class="menu-toggle" onclick="toggleSidebar()">☰</div>
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-toggle" onclick="toggleSidebar()">☰</div>
 
-<div id="menuColab" class="sidebar-collab">
-
-<ul>
-
-<li onclick="location.href='/colaborador/dashboard.html'">
-  <i>🏠</i> <span>Dashboard</span>
-</li>
-
-<li onclick="location.href='/colaborador/recebiveis.html'">
-  <i>💰</i> <span>Recebíveis</span>
-</li>
-
-<li onclick="location.href='/colaborador/demonstrativo.html'">
-  <i>📦</i> <span>Produção</span>
-</li>
-
-<li onclick="location.href='/colaborador/solicitar_emprestimo.html'">
-  <i>💳</i> <span>Empréstimo</span>
-</li>
-
-<li onclick="location.href='/colaborador/status_emprestimos.html'">
-  <i>📄</i> <span>Status Empréstimos</span>
-</li>
-
-<li onclick="location.href='/colaborador/incentivos.html'">
-  <i>🎯</i> <span>Incentivos & Metas</span>
-</li>
-
-
-<li onclick="logout()">
-  <i>🚪</i> <span>Sair</span>
-</li>
-
-</ul>
-
+  <ul>
+    <li><a href="/colaborador/dashboard.html">🏠 <span>Dashboard</span></a></li>
+    <li><a href="/colaborador/recebiveis.html">💰 <span>Recebíveis</span></a></li>
+    <li><a href="/colaborador/producao.html">📦 <span>Produção</span></a></li>
+    <li><a href="/colaborador/emprestimos.html">💳 <span>Empréstimos</span></a></li>
+    <li><a href="/colaborador/incentivos.html">🎯 <span>Incentivos & Metas</span></a></li>
+    <li><a href="/logout">🚪 <span>Sair</span></a></li>
+  </ul>
 </div>
 
 <script>
-function toggleSidebar() {
-  const sb = document.getElementById("menuColab");
-  const main = document.querySelector(".main");
+// Restore saved state
+document.addEventListener("DOMContentLoaded", () => {
+  const sidebar = document.getElementById("sidebar");
+  const saved = localStorage.getItem("sidebar-collapsed");
 
-  sb.classList.toggle("collapsed");
-  main.classList.toggle("collapsed");
+  if (saved === "true") {
+    sidebar.classList.add("collapsed");
+  }
+});
+
+function toggleSidebar() {
+  const sidebar = document.getElementById("sidebar");
+  sidebar.classList.toggle("collapsed");
+
+  // Save state
+  localStorage.setItem(
+    "sidebar-collapsed",
+    sidebar.classList.contains("collapsed")
+  );
 }
 </script>
