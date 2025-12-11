@@ -69,3 +69,39 @@ body{margin:0;background:linear-gradient(180deg,#021835,#062642);color:#fff;}
   font-size: 12px;
 }
 
+/* --------------------------
+   SIDEBAR COLAPSÁVEL
+---------------------------*/
+.sidebar {
+    transition: width 0.3s ease;
+}
+
+.sidebar.collapsed {
+    width: 70px;
+}
+
+.sidebar .menu-text {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    white-space: nowrap;
+}
+
+.sidebar.collapsed .menu-text {
+    opacity: 0;
+}
+
+.main {
+    margin-left: 240px;
+    transition: margin-left 0.3s ease;
+}
+
+.main.collapsed {
+    margin-left: 90px;
+}
+
+/* Ícone do botão de menu */
+.menu-toggle {
+    font-size: 26px;
+    cursor: pointer;
+    user-select: none;
+}
