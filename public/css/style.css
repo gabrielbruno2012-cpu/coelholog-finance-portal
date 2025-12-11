@@ -69,10 +69,12 @@ body{margin:0;background:linear-gradient(180deg,#021835,#062642);color:#fff;}
   font-size: 12px;
 }
 
-/* --------------------------
+/* ----------------------------
    SIDEBAR COLAPSÁVEL
----------------------------*/
+----------------------------- */
+
 .sidebar {
+    width: 240px;
     transition: width 0.3s ease;
 }
 
@@ -82,26 +84,51 @@ body{margin:0;background:linear-gradient(180deg,#021835,#062642);color:#fff;}
 
 .sidebar .menu-text {
     opacity: 1;
-    transition: opacity 0.3s ease;
-    white-space: nowrap;
+    transition: opacity 0.25s ease;
 }
 
 .sidebar.collapsed .menu-text {
     opacity: 0;
 }
 
+/* Main ajusta quando sidebar recolher */
 .main {
     margin-left: 240px;
     transition: margin-left 0.3s ease;
 }
 
 .main.collapsed {
-    margin-left: 90px;
+    margin-left: 80px;
 }
 
-/* Ícone do botão de menu */
+/* Botão de recolher */
 .menu-toggle {
     font-size: 26px;
     cursor: pointer;
+    padding: 8px;
     user-select: none;
+}
+
+/* Logo */
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px;
+}
+
+.logo-icon {
+    font-size: 28px;
+}
+
+.logo-text {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Ícones */
+.menu a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
