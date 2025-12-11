@@ -145,3 +145,9 @@ body{margin:0;background:linear-gradient(180deg,#021835,#062642);color:#fff;}
 .sidebar.collapsed .logo-text {
     display: none;
 }
+
+/* Quando o menu recolher, o conteúdo deve expandir */
+.sidebar.collapsed ~ .main {
+    margin-left: 70px !important;
+    transition: margin-left 0.25s ease;
+}
