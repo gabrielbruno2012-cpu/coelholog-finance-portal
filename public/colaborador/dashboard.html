@@ -21,6 +21,13 @@ if (localStorage.getItem('usuario') && !localStorage.getItem('user')) {
 <!-- SIDEBAR -->
 <div id="sidebar-container"></div>
 
+<script>
+fetch('/components/sidebar_colaborador.html')
+  .then(r => r.text())
+  .then(html => document.getElementById("sidebar-container").innerHTML = html);
+</script>
+
+
 <main class="main">
 
   <div class="header-right">
@@ -64,9 +71,6 @@ if (localStorage.getItem('usuario') && !localStorage.getItem('user')) {
 //////////////////////////////////////////////////////////////////////////////
 // CARREGAR SIDEBAR
 //////////////////////////////////////////////////////////////////////////////
-fetch('/components/sidebar.html')
-  .then(r=>r.text())
-  .then(html=> document.getElementById('sidebar-container').innerHTML = html);
 
 //////////////////////////////////////////////////////////////////////////////
 // FUNÇÕES ÚTEIS
