@@ -1,239 +1,182 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Dashboard Colaborador</title>
-  <link rel="stylesheet" href="/css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<title>Dashboard Colaborador</title>
+<link rel="stylesheet" href="/css/style.css">
+<style>
+/* BOTÃO MENU */
+#menuToggle {
+    font-size: 22px;
+    cursor: pointer;
+    padding: 10px;
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    color: #fff;
+    z-index: 9999;
+}
+.sidebar.collapsed {
+    width: 60px;
+}
+.sidebar.collapsed .label-text {
+    display: none;
+}
+</style>
 </head>
 <body>
 
-<script>
-// Sync admin login -> collaborator login
-if (localStorage.getItem('usuario') && !localStorage.getItem('user')) {
-    localStorage.setItem('user', localStorage.getItem('usuario'));
-}
-</script>
-
 <div id="sidebar-container"></div>
 
+<span id="menuToggle">☰</span>
+
 <main class="main">
-  <div class="header-right">
-    <button class="btn" onclick="logout()">Logout</button>
-  </div>
+    <h1 id="welcome">Bem-vindo</h1>
 
-  <h1>Bem-vindo, <span id="username">Colaborador</span></h1>
+    <div class="top-cards">
+        <div class="card">
+            <h4>Total Recebido</h4>
+            <div id="total_recebido">R$ 0,00</div>
+        </div>
 
-  <div class="top-cards">
-    <div class="top-card card">
-      <div class="small">Total Recebido</div>
-      <div id="total_recebido" class="huge">R$ 0,00</div>
-    </div>
-    <div class="top-card card">
-      <div class="small">Total Pendente</div>
-      <div id="total_pendente" class="huge">R$ 0,00</div>
-    </div>
-    <div class="top-card card">
-      <div class="small">Em Processamento</div>
-      <div id="total_processamento" class="huge">R$ 0,00</div>
-    </div>
-  </div>
+        <div class="card">
+            <h4>Total Pendente</h4>
+            <div id="total_pendente">R$ 0,00</div>
+        </div>
 
-  <div class="card">
-    <h3>Ganhos no Mês</h3>
-    <div style="height:220px">
-      <canvas id="barChart"></canvas>
+        <div class="card">
+            <h4>Em Processamento</h4>
+            <div id="total_processando">R$ 0,00</div>
+        </div>
     </div>
-  </div>
 
-  <div class="card">
-    <h3>Recebíveis</h3>
-    <div id="recList"></div>
-  </div>
+    <div class="card">
+        <h3>Ganhos no Mês</h3>
+        <div id="ganhos_mes">Carregando...</div>
+    </div>
+
+    <div class="card">
+        <h3>Recebíveis</h3>
+        <div id="lista"></div>
+    </div>
 </main>
 
 <script>
-// carrega sidebar do colaborador (ajuste o caminho se o seu arquivo tiver outro nome)
-fetch('/components/sidebar.html')
-  .then(r => r.text())
-  .then(html => document.getElementById('sidebar-container').innerHTML = html);
+// ============================
+// CARREGAR SIDEBAR
+// ============================
+fetch("/components/sidebar_colaborador.html")
+.then(r => r.text())
+.then(html => {
+    document.getElementById("sidebar-container").innerHTML = html;
 
-function logout() {
-  localStorage.removeItem('user');
-  window.location = '/';
-}
+    // botão recolher menu
+    document.getElementById("menuToggle").addEventListener("click", () => {
+        document.querySelector(".sidebar").classList.toggle("collapsed");
+    });
+});
 
-function fmt(v) {
-  return 'R$ ' + Number(v || 0).toLocaleString('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-}
+// ============================
+// DADOS DO USUÁRIO
+// ============================
+const rawUser = localStorage.getItem("user") || localStorage.getItem("usuario");
+if (!rawUser) window.location = "/";
+const user = JSON.parse(rawUser);
 
-window._barChart = null;
+document.getElementById("welcome").innerText = `Bem-vindo, ${user.nome.toUpperCase()}`;
 
-async function loadDashboard() {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  if (!user || !user.id) {
-    window.location = '/';
-    return;
-  }
+// ============================
+// CARREGAR RECEBÍVEIS + PRODUÇÃO
+// ============================
+async function loadDados() {
+    const hoje = new Date();
+    const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+    const ano = hoje.getFullYear();
 
-  document.getElementById('username').innerText = user.nome || user.email || 'Colaborador';
-
-  // -----------------------------
-  // 1) Buscar recebíveis + produção
-  // -----------------------------
-  const hoje = new Date();
-  const mes  = String(hoje.getMonth() + 1).padStart(2, '0');
-  const ano  = hoje.getFullYear();
-
-  let recebiveis = [];
-  let producoes  = [];
-
-  try {
-    const [recebiveisRes, producoesRes] = await Promise.all([
-      fetch('/api/recebiveis?user_id=' + user.id),
-      fetch(`/api/producao/colaborador?usuario_id=${user.id}&mes=${mes}&ano=${ano}`)
+    const [recRes, prodRes] = await Promise.all([
+        fetch(`/api/recebiveis?user_id=${user.id}`),
+        fetch(`/api/producao/colaborador?usuario_id=${user.id}&mes=${mes}&ano=${ano}`)
     ]);
 
-    recebiveis = await recebiveisRes.json();
-    let prodJson = await producoesRes.json();
-    if (!Array.isArray(prodJson)) prodJson = [];
-    producoes = prodJson;
-  } catch (e) {
-    console.error('Erro ao carregar APIs:', e);
-  }
+    let recebiveis = await recRes.json();
+    let producoes = await prodRes.json();
 
-  // converter produções para o mesmo formato da tabela de recebíveis
-  const producoesConvertidas = producoes.map(p => ({
-    id: 'P-' + p.id,
-    data: p.data,
-    valor: p.total_calculado || p.valor || 0,
-    tipo: 'Produção',
-    status: p.nota_status || p.status || 'pendente'
-  }));
+    if (!Array.isArray(producoes)) producoes = [];
 
-  // juntar tudo
-  const rows = [...recebiveis, ...producoesConvertidas];
+    // Converter produções para mesma estrutura
+    const producaoConvertida = producoes.map(p => ({
+        id: "P-" + p.id,
+        data: p.data,
+        valor: p.total_calculado || 0,
+        tipo: "Produção",
+        status: p.nota_status || "pendente"
+    }));
 
-  // -----------------------------
-  // 2) Totais (Recebido / Pendente / Processamento)
-  // -----------------------------
-  let total = 0;
-  let pend  = 0;
-  let proc  = 0;
+    const todos = [...recebiveis, ...producaoConvertida];
 
-  rows.forEach(r => {
-    const v = parseFloat(String(r.valor || 0).toString().replace(',', '.')) || 0;
-    const st = (r.status || '').toLowerCase();
-
-    if (st.includes('pago'))       total += v;
-    else if (st.includes('process')) proc += v;
-    else if (st.includes('pend'))  pend  += v;
-  });
-
-  document.getElementById('total_recebido').innerText      = fmt(total);
-  document.getElementById('total_pendente').innerText      = fmt(pend);
-  document.getElementById('total_processamento').innerText = fmt(proc);
-
-  // -----------------------------
-  // 3) Tabela
-  // -----------------------------
-  if (rows.length === 0) {
-    document.getElementById('recList').innerHTML =
-      '<p class="small">Nenhum recebível encontrado.</p>';
-  } else {
-    let html = `
-      <table class="table">
-        <tr>
-          <th>ID</th>
-          <th>Data</th>
-          <th>Valor</th>
-          <th>Tipo</th>
-          <th>Status</th>
-        </tr>
-    `;
-
-    rows.forEach(r => {
-      html += `
-        <tr>
-          <td>${r.id}</td>
-          <td>${r.data || ''}</td>
-          <td>R$ ${Number(r.valor || 0).toFixed(2)}</td>
-          <td>${r.tipo || ''}</td>
-          <td>${r.status || ''}</td>
-        </tr>
-      `;
-    });
-
-    html += '</table>';
-    document.getElementById('recList').innerHTML = html;
-  }
-
-  // -----------------------------
-  // 4) Gráfico de ganhos (apenas valores pagos)
-  // -----------------------------
-  const byMonth = {};
-
-  rows.forEach(r => {
-    const st = (r.status || '').toLowerCase();
-    if (!st.includes('pago')) return;
-
-    const date = r.data ? r.data.split(' ')[0] : r.data;
-    let m = '0';
-    if (date && date.indexOf('-') > 0) {
-      m = date.split('-')[1];
-    }
-    if (!m) m = '0';
-
-    byMonth[m] = (byMonth[m] || 0) +
-      (parseFloat(String(r.valor || 0).toString().replace(',', '.')) || 0);
-  });
-
-  const months = Object.keys(byMonth).sort();
-  const labels = months.map(m =>
-    ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][parseInt(m, 10) - 1] || m
-  );
-  const data = months.map(m => byMonth[m] || 0);
-
-  const ctx = document.getElementById('barChart').getContext('2d');
-  if (window._barChart) window._barChart.destroy();
-
-  window._barChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Ganhos (R$)',
-        data,
-        backgroundColor: '#F6C21B',
-        borderRadius: 6
-      }]
-    },
-    options: {
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: v => 'R$ ' + v
-          }
-        }
-      },
-      plugins: {
-        legend: { display: false }
-      },
-      responsive: true,
-      maintainAspectRatio: false
-    }
-  });
+    renderTabela(todos);
+    calcularTotais(todos);
 }
 
-// deixar a função acessível para outras páginas
-window.loadDashboard = loadDashboard;
+// ============================
+// RENDERIZAR TABELA
+// ============================
+function renderTabela(lista) {
+    if (lista.length === 0) {
+        document.getElementById("lista").innerHTML = "<p>Nenhum recebível encontrado.</p>";
+        return;
+    }
 
-document.addEventListener('DOMContentLoaded', loadDashboard);
+    let html = `
+        <table class="table">
+            <tr>
+                <th>ID</th><th>Data</th><th>Valor</th><th>Tipo</th><th>Status</th>
+            </tr>
+    `;
+
+    lista.forEach(r => {
+        html += `
+            <tr>
+                <td>${r.id}</td>
+                <td>${r.data}</td>
+                <td>R$ ${Number(r.valor).toFixed(2)}</td>
+                <td>${r.tipo}</td>
+                <td>${r.status}</td>
+            </tr>
+        `;
+    });
+
+    html += "</table>";
+    document.getElementById("lista").innerHTML = html;
+}
+
+// ============================
+// CALCULAR TOTAIS DOS CARDS
+// ============================
+function calcularTotais(lista) {
+    let total = 0, pend = 0, proc = 0;
+
+    lista.forEach(r => {
+        const v = Number(r.valor) || 0;
+        const st = (r.status || "").toLowerCase();
+
+        if (st.includes("pago") || st.includes("aprov")) {
+            total += v;
+        } 
+        else if (st.includes("pend")) {
+            pend += v;
+        } 
+        else if (st.includes("process")) {
+            proc += v;
+        }
+    });
+
+    document.getElementById("total_recebido").innerText = `R$ ${total.toFixed(2)}`;
+    document.getElementById("total_pendente").innerText = `R$ ${pend.toFixed(2)}`;
+    document.getElementById("total_processando").innerText = `R$ ${proc.toFixed(2)}`;
+}
+
+document.addEventListener("DOMContentLoaded", loadDados);
 </script>
 
 </body>
