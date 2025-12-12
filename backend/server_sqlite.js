@@ -6,6 +6,15 @@ const sqlite3 = require('sqlite3').verbose();
 
 const app = express();
 
+const path = require("path");
+
+// 🔥 liberar acesso público aos uploads
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "uploads"))
+);
+
+
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
