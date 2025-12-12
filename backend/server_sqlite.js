@@ -8,15 +8,14 @@ const app = express();
 
 const path = require("path");
 
+app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, '../public')));
+
 // 🔥 liberar acesso público aos uploads
 app.use(
   "/uploads",
   express.static(path.join(__dirname, "uploads"))
 );
-
-
-app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, '../public')));
 
 // Caminho do banco correto
 const DB = path.join(__dirname, "sql", "coelholog.db");
