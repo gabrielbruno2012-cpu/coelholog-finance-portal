@@ -6,8 +6,6 @@ const sqlite3 = require('sqlite3').verbose();
 
 const app = express();
 
-const path = require("path");
-
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
