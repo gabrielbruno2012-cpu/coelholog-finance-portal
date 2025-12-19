@@ -986,6 +986,30 @@ app.delete("/api/incentivos/pontos/excluir/:id", (req, res) => {
     });
 });
 
+// ======================================
+// MOSTRAR TODAS AS PRODUÇÕES
+// ======================================
+
+app.get("/api/producao/admin", (req, res) => {
+  const { mes, ano } = req.query;
+
+  db.all(`
+    SELECT 
+      p.*,
+      u.nome AS colaborador
+    FROM producao_colaborador p
+    LEFT JOIN usuarios u ON u.id = p.usuario_id
+    WHERE strftime('%m', p.data) = ?
+      AND strftime('%Y', p.data) = ?
+    ORDER BY p.data DESC
+  `,
+  [mes, ano],
+  (err, rows) => {
+    if (err) return res.status(500).json({ error: "db" });
+    res.json(rows);
+  });
+});
+
 
 // ======================================
 // START SERVER
