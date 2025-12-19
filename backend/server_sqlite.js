@@ -9,11 +9,12 @@ const app = express();
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
-// 🔥 liberar acesso público aos uploads
+// liberar acesso público aos uploads
 app.use(
   "/uploads",
-  express.static(path.join(__dirname, "uploads"))
+  express.static(path.join(__dirname, "..", "uploads"))
 );
+
 
 // Caminho do banco correto
 const DB = path.join(__dirname, "sql", "coelholog.db");
