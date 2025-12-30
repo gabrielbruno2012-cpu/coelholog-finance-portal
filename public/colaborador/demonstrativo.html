@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Demonstrativo de Produção - CoelhoLog</title>
+<link rel="stylesheet" href="/css/style.css">
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #062447;
+    color: white;
+}
+
+/* TOPBAR */
+.topbar {
+    width: 100%;
+    height: 65px;
+    background: #002855;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 25px;
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 20;
+}
+.topbar img {
+    height: 42px;
+}
+.btn-logout {
+    background: #f7c600;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+    .btn-upload {
+    background: #f7c600;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* LAYOUT COLABORADOR (sem sidebar fixa) */
+.main {
+    margin-top: 80px;
+    padding: 20px 30px 40px 30px;
+}
+
+/* TÍTULO */
+h1 {
+    margin: 0 0 10px 0;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+/* FILTROS */
+.filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 15px 0 25px 0;
+}
+.filtros select {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: none;
+    background: #ffffff18;
+    color: white;
+}
+
+/* CARDS RESUMO */
+.cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+.card-resumo {
+    flex: 1;
+    min-width: 200px;
+    background: #ffffff18;
+    border-radius: 10px;
+    padding: 15px 18px;
+}
+.card-resumo h3 {
+    margin: 0;
+    font-size: 14px;
+    opacity: .8;
+}
+.card-resumo .valor {
+    margin-top: 6px;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+/* TABELA */
+.tabela-container {
+    background: #ffffff18;
+    border-radius: 10px;
+    padding: 18px;
+    overflow-x: auto;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+th, td {
+    padding: 8px 6px;
+    text-align: left;
+}
+th {
+    border-bottom: 1px solid #ffffff33;
+    font-weight: 600;
+}
+tbody tr:nth-child(even) {
+    background: #ffffff10;
+}
+.badge-total {
+    display: inline-block;
+    margin-top: 10px;
+    font-weight: 600;
+}
+
+/* MSG */
+#msg {
+    margin-top: 10px;
+    font-size: 13px;
+    opacity: .8;
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+    <img src="/img/logo.png">
+    <button class="btn-logout" onclick="logout()">Logout</button>
+</div>
+<!-- SIDEBAR DO COLABORADOR -->
+<div id="sidebar-container"></div>
+
+<script>
+    // Carregar sidebar
+    fetch('/components/sidebar.html')
+        .then(r => r.text())
+        .then(html => {
+            document.getElementById('sidebar-container').innerHTML = html;
+
+            // Ajuste do layout: empurrar conteúdo para o lado
+            document.querySelector('.main').style.marginLeft = "240px";
+        });
+</script>
+    
+<div class="main">
+    <h1>Demonstrativo de Produção</h1>
+    <div id="msg"></div>
+
+    <!-- FILTROS -->
+    <div class="filtros">
+        <div>
+            <label>Mês:</label>
+            <select id="mes"></select>
+        </div>
+        <div>
+            <label>Ano:</label>
+            <select id="ano"></select>
+        </div>
+        <button class="btn-logout" style="padding:8px 16px;" onclick="carregar()">Atualizar</button>
+    </div>
+
+    <!-- CARDS RESUMO -->
+    <div class="cards">
+        <div class="card-resumo">
+            <h3>Total do mês</h3>
+            <div class="valor" id="cardTotalMes">R$ 0,00</div>
+        </div>
+        <div class="card-resumo">
+            <h3>Entregas totais</h3>
+            <div class="valor" id="cardEntregas">0</div>
+        </div>
+        <div class="card-resumo">
+            <h3>F simples (qtd / R$)</h3>
+            <div class="valor" id="cardFs">0 / R$ 0,00</div>
+        </div>
+        <div class="card-resumo">
+            <h3>Bobina (qtd / R$)</h3>
+            <div class="valor" id="cardBobina">0 / R$ 0,00</div>
+        </div>
+        <div class="card-resumo">
+            <h3>Dias trabalhados</h3>
+            <div class="valor" id="cardDias">0</div>
+        </div>
+    </div>
+
+    <!-- TABELA DETALHADA -->
+    <div class="tabela-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Entregas</th>
+                    <th>F simples (qtd × R$)</th>
+                    <th>Bobina (qtd × R$)</th>
+                    <th>Fixo (R$)</th>
+                    <th>Desconto (R$)</th>
+                    <th>Total dia (R$)</th>
+                    <th>OBS</th>
+                    <th> Nota</th>
+                </tr>
+            </thead>
+            <tbody id="tbodyProd"></tbody>
+        </table>
+        <div class="badge-total" id="totalResumo"></div>
+    </div>
+</div>
+
+<script>
+    
+    async function enviarNota(id) {
+    const fileInput = document.getElementById("file_" + id);
+
+    // abre o seletor de arquivos
+    fileInput.click();
+
+    fileInput.onchange = async () => {
+
+        if (!fileInput.files.length) return;
+
+        const arquivo = fileInput.files[0];
+
+        const formData = new FormData();
+        formData.append("nota", arquivo);
+        formData.append("producao_id", id);
+        formData.append("usuario_id", user.id);
+
+        const resp = await fetch("/api/producao/enviar-nota", {
+            method: "POST",
+            body: formData
+        });
+
+        if (resp.ok) {
+            alert("Nota enviada com sucesso!");
+        } else {
+            alert("Erro ao enviar nota!");
+        }
+    };
+}
+  
+// ===== AUTENTICAÇÃO BÁSICA DO COLABORADOR =====
+const uStr = localStorage.getItem("usuario");
+let user = null;
+try { user = uStr ? JSON.parse(uStr) : null; } catch(e){ user = null; }
+
+if (!user) {
+    location = "/";
+} else if (user.role !== "colaborador") {
+    // se não for colaborador, manda pro admin (ajuste se quiser outro destino)
+    location = "/admin/dashboard_admin.html";
+}
+
+// ===== LOGOUT =====
+function logout() {
+    localStorage.clear();
+    location = "/";
+}
+
+// ===== POPULAR SELECTS DE MÊS/ANO =====
+const mesSel = document.getElementById("mes");
+const anoSel = document.getElementById("ano");
+const msg = document.getElementById("msg");
+const tbodyProd = document.getElementById("tbodyProd");
+
+const cardTotalMes = document.getElementById("cardTotalMes");
+const cardEntregas = document.getElementById("cardEntregas");
+const cardFs       = document.getElementById("cardFs");
+const cardBobina   = document.getElementById("cardBobina");
+const cardDias     = document.getElementById("cardDias");
+const totalResumo  = document.getElementById("totalResumo");
+
+function initFiltros() {
+    const meses = [
+        "01 - Jan", "02 - Fev", "03 - Mar", "04 - Abr",
+        "05 - Mai", "06 - Jun", "07 - Jul", "08 - Ago",
+        "09 - Set", "10 - Out", "11 - Nov", "12 - Dez"
+    ];
+    mesSel.innerHTML = meses.map((m, idx) => {
+        const mesNum = (idx + 1).toString().padStart(2, "0");
+        const sel = (idx === new Date().getMonth()) ? "selected" : "";
+        return `<option value="${mesNum}" ${sel}>${m}</option>`;
+    }).join("");
+
+    const anoAtual = new Date().getFullYear();
+    let anosHtml = "";
+    for (let a = anoAtual - 2; a <= anoAtual + 1; a++) {
+        const sel = (a === anoAtual) ? "selected" : "";
+        anosHtml += `<option value="${a}" ${sel}>${a}</option>`;
+    }
+    anoSel.innerHTML = anosHtml;
+}
+
+// ===== FORMATADOR =====
+function formatMoney(v) {
+    return "R$ " + Number(v || 0).toFixed(2);
+}
+
+// ===== CARREGAR PRODUÇÃO DO COLABORADOR =====
+async function carregar() {
+    msg.innerText = "Carregando...";
+    tbodyProd.innerHTML = "";
+    cardTotalMes.innerText = "R$ 0,00";
+    cardEntregas.innerText = "0";
+    cardFs.innerText = "0 / R$ 0,00";
+    cardBobina.innerText = "0 / R$ 0,00";
+    cardDias.innerText = "0";
+    totalResumo.innerText = "";
+
+    const mes = mesSel.value.substring(0, 2);
+    const ano = anoSel.value;
+
+    const params = new URLSearchParams({
+        usuario_id: user.id,
+        mes,
+        ano
+    });
+
+    const resp = await fetch("/api/producao/colaborador?" + params.toString());
+    if (!resp.ok) {
+        msg.innerText = "Erro ao carregar demonstrativo.";
+        return;
+    }
+
+    const lista = await resp.json();
+    msg.innerText = "";
+
+    if (!lista.length) {
+        msg.innerText = "Nenhum lançamento de produção neste período.";
+        return;
+    }
+
+    let totalMes = 0;
+    let totalEntregas = 0;
+    let totalFsQtd = 0;
+    let totalFsVal = 0;
+    let totalBobQtd = 0;
+    let totalBobVal = 0;
+    let totalDias = 0;
+    const diasSet = new Set();
+
+    let html = "";
+    lista.forEach(l => {
+        const dataStr = l.data || "";
+        const entregas = Number(l.entregas || 0);
+        const fsQtd = Number(l.producao_fs || 0);
+        const fsVal = Number(l.valor_fs || 0);
+        const bobQtd = Number(l.producao_bobina || 0);
+        const bobVal = Number(l.valor_bobina || 0);
+        const fixo = Number(l.fixo_diaria || 0);
+        const desc = Number(l.desconto || 0);
+        const totalDia = Number(l.total_calculado || 0);
+
+        totalMes += totalDia;
+        totalEntregas += entregas - (fsQtd + bobQtd);
+        totalFsQtd += fsQtd;
+        totalFsVal += (fsQtd * fsVal);
+        totalBobQtd += bobQtd;
+        totalBobVal += (bobQtd * bobVal);
+        if (dataStr) diasSet.add(dataStr);
+
+        html += `
+        <tr>
+            <td>${dataStr}</td>
+            <td>${entregas - (fsQtd + bobQtd)}</td>
+            <td>${fsQtd} × ${formatMoney(fsVal)}</td>
+            <td>${bobQtd} × ${formatMoney(bobVal)}</td>
+            <td>${formatMoney(fixo)}</td>
+            <td>${formatMoney(desc)}</td>
+            <td>${formatMoney(totalDia)}</td>
+            <td>${l.obs || ""}</td>
+            <td>
+                <input type="file" accept="image/*,application/pdf" style="display:none" id="file_${l.id}">
+                ${
+                    l.nota_status === "pendente"
+                    ? "<span style='color:yellow'>Aguardando análise</span>"
+                    : l.nota_status === "aprovado"
+                    ? "<span style='color:lightgreen'>Aprovada</span>"
+                    : `<button class="btn-upload" style="padding:8px 16px;" onclick="enviarNota(${l.id})">Enviar</button>`
+                }
+            </td>
+
+
+
+        </tr>`;
+    });
+
+    tbodyProd.innerHTML = html;
+
+    totalDias = diasSet.size;
+
+    cardTotalMes.innerText = formatMoney(totalMes);
+    cardEntregas.innerText = totalEntregas;
+    cardFs.innerText = `${totalFsQtd} / ${formatMoney(totalFsVal)}`;
+    cardBobina.innerText = `${totalBobQtd} / ${formatMoney(totalBobVal)}`;
+    cardDias.innerText = totalDias;
+
+    totalResumo.innerText =
+        `Total do mês: ${formatMoney(totalMes)} | ` +
+        `Entregas: ${totalEntregas} | ` +
+        `F simples: ${totalFsQtd} | ` +
+        `Bobina: ${totalBobQtd}`;
+}
+
+// ===== INICIAR =====
+initFiltros();
+carregar();
+</script>
+
+</body>
+</html>
