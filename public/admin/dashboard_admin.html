@@ -1,378 +1,254 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Painel Administrativo - CoelhoLog</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Painel Administrativo - CoelhoLog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <style>
-        :root {
-            --azul-escuro: #062447;
-            --azul-topbar: #002145;
-            --amarelo: #FFC400;
-            --cinza-fundo: #eef2f7;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: var(--cinza-fundo);
-            color: #001B38;
-        }
-
-        /* TOPBAR */
-        .topbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 70px;
-            background-color: var(--azul-topbar);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 24px;
-            z-index: 1000;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-        }
-
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .topbar-logo {
-            height: 40px;
-        }
-
-        .logout-btn {
-            background-color: var(--amarelo);
-            border: none;
-            padding: 9px 20px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .logout-btn:hover {
-            filter: brightness(0.95);
-        }
-
-        /* SIDEBAR */
-        .sidebar {
-            position: fixed;
-            top: 70px; /* abaixo da topbar */
-            left: 0;
-            width: 230px;
-            height: calc(100vh - 70px);
-            background-color: var(--azul-escuro);
-            color: #fff;
-            padding-top: 20px;
-            z-index: 500;
-        }
-
-        .sidebar a {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #fff;
-            text-decoration: none;
-            padding: 12px 20px;
-            font-size: 15px;
-            transition: background 0.2s;
-        }
-
-        .sidebar a:hover {
-            background-color: rgba(255,255,255,0.12);
-        }
-
-        .sidebar-icon {
-            width: 22px;
-            text-align: center;
-        }
-
-        /* CONTEÚDO PRINCIPAL */
-        .main-content {
-            margin-top: 80px;   /* altura topbar */
-            margin-left: 230px; /* largura sidebar */
-            padding: 24px;
-        }
-
-        h1 {
-            margin: 0 0 10px 0;
-            font-size: 24px;
-        }
-
-        /* CARDS */
-        .cards-row {
-            display: flex;
-            gap: 18px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-
-        .card {
-            flex: 1;
-            min-width: 220px;
-            background-color: var(--azul-escuro);
-            color: #fff;
-            border-radius: 10px;
-            padding: 18px 22px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-        }
-
-        .card-title {
-            font-size: 13px;
-            opacity: 0.8;
-            margin-bottom: 8px;
-        }
-
-        .card-value {
-            font-size: 22px;
-            font-weight: bold;
-        }
-
-        /* BOX TABELA */
-        .box {
-            margin-top: 28px;
-            background-color: #fff;
-            border-radius: 10px;
-            padding: 22px 24px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-        }
-
-        .box h2 {
-            margin: 0 0 12px 0;
-            font-size: 18px;
-            color: #001B38;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background-color: #e9edf3;
-        }
-
-        th, td {
-            padding: 10px 12px;
-            text-align: left;
-        }
-
-        th {
-            font-size: 14px;
-            color: var(--azul-escuro);
-        }
-
-        td {
-            font-size: 14px;
-            color: var(--azul-escuro);
-            border-bottom: 1px solid #f0f2f6;
-        }
-    </style>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/ui-common.js"></script>
+  <script src="/js/dashboard-widgets.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-    <!-- TOPBAR -->
-    <header class="topbar">
-        <div class="topbar-left">
-            <img src="/img/logo.png" alt="CoelhoLog" class="topbar-logo">
+  <div class="mobile-topbar">
+    <button class="btn btn-secondary" id="btnMenu">Menu</button>
+    <div class="small" id="periodLabel">Admin</div>
+    <button class="btn" onclick="logoutEverywhere()">Sair</button>
+  </div>
+
+  <div id="sidebar-container"></div>
+
+  <main class="main">
+    <div class="header-right">
+      <button class="btn" onclick="logoutEverywhere()">Logout</button>
+    </div>
+
+    <h1>Painel Administrativo</h1>
+
+    <div class="card">
+      <div class="filter-bar">
+        <div class="field">
+          <div class="small">Período</div>
+          <select class="input" id="fPeriod"></select>
         </div>
-        <button class="logout-btn" onclick="fazerLogout()">Logout</button>
-    </header>
+        <div class="field">
+          <div class="small">Status</div>
+          <select class="input" id="fStatus">
+            <option value="all">Todos</option>
+            <option value="ok">Pago/Aprovado</option>
+            <option value="pendente">Pendente</option>
+            <option value="processando">Em processamento</option>
+            <option value="negado">Recusado</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="small">Tipo</div>
+          <select class="input" id="fType">
+            <option value="all">Todos</option>
+            <option value="recebivel">Recebível</option>
+            <option value="producao">Produção</option>
+          </select>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn" id="btnApply">Aplicar</button>
+          <button class="btn btn-secondary" id="btnClear">Limpar</button>
+        </div>
+      </div>
+      <div class="small" id="activeFilters"></div>
+    </div>
 
-    <!-- SIDEBAR -->
-    <nav class="sidebar">
-        <a href="dashboard_admin.html">
-            <span class="sidebar-icon">📊</span>
-            <span>Dashboard</span>
-        </a>
-        <a href="alterar_recebiveis.html">
-            <span class="sidebar-icon">💰</span>
-            <span>Alterar Recebíveis</span>
-        </a>
-        <a href="alterar_emprestimos.html">
-            <span class="sidebar-icon">💸</span>
-            <span>Alterar Empréstimos</span>
-        </a>
-        <a href="criar_colaborador.html">
-            <span class="sidebar-icon">👤</span>
-            <span>Criar Colaborador</span>
-        </a>
-        <a href="lancar_recebiveis.html">
-            <span class="sidebar-icon">➕</span>
-            <span>Lançar Recebível</span>
-        </a>
-        <a href="lancar_producao.html">
-            <span class="sidebar-icon">➕</span>
-            <span>Lançar Produção</span>
-        </a>
-        <a href="admin_producao_status.html">
-            <span class="sidebar-icon">💵</span>
-            <span>Aprovar / Reprovar</span>
-         </a>   
-        <a href="todos_emprestimos.html">
-            <span class="sidebar-icon">📋</span>
-            <span>Todos Empréstimos</span>
-        </a>
-        <a href="criar_campanha.html">
-            <span class="sidebar-icon">🔧</span>
-            <span>Criar Campanha</span>
-        </a>
-        <a href="registrar_sla.html">
-            <span class="sidebar-icon">⏱</span>
-            <span>Registrar SLA</span>
-        </a>
-        <a href="registrar_bonus.html">
-            <span class="sidebar-icon">🎁</span>
-            <span>Registrar Bônus</span>
-        </a>
-        <a href="registrar_pontos.html">
-            <span class="sidebar-icon">📈</span>
-            <span>Registrar Pontos</span>
-        </a>
-    </nav>
+    <div class="top-cards" id="kpis">
+      <div class="top-card card kpi-card" data-kpi="pendente" title="Clique para filtrar pendentes">
+        <div class="small">Recebíveis Pendentes</div>
+        <div id="kpi_pendente" class="huge">R$ 0,00</div>
+      </div>
 
-    <!-- CONTEÚDO -->
-    <main class="main-content">
-        <h1>Painel Administrativo</h1>
+      <div class="top-card card kpi-card" data-kpi="ok" title="Clique para filtrar pagos/aprovados">
+        <div class="small">Recebíveis Pagos/Aprovados</div>
+        <div id="kpi_ok" class="huge">R$ 0,00</div>
+      </div>
 
-        <!-- CARDS -->
-        <section class="cards-row">
-            <div class="card">
-                <div class="card-title">Recebíveis Pendentes</div>
-                <div class="card-value" id="cardRecebiveisPendentes">R$ 0,00</div>
-            </div>
+      <div class="top-card card kpi-card" data-kpi="processando" title="Clique para filtrar em processamento">
+        <div class="small">Em Processamento</div>
+        <div id="kpi_proc" class="huge">R$ 0,00</div>
+      </div>
+    </div>
 
-            <div class="card">
-                <div class="card-title">Recebíveis Pagos</div>
-                <div class="card-value" id="cardRecebiveisPagos">R$ 0,00</div>
-            </div>
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+        <h3 style="margin:0;">Recebíveis pagos (por dia)</h3>
+        <button class="btn btn-secondary" id="btnExport">Exportar CSV</button>
+      </div>
+      <div style="height:260px; margin-top:10px;">
+        <canvas id="barChart"></canvas>
+      </div>
+      <div class="small" style="margin-top:8px;">Dica: clique em uma barra do gráfico para filtrar a tabela por dia</div>
+    </div>
 
-            <div class="card">
-                <div class="card-title">Empréstimos Pendentes</div>
-                <div class="card-value" id="cardEmprestimosPendentes">0</div>
-            </div>
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+        <h3 style="margin:0;">Últimos lançamentos</h3>
+        <div class="small" id="tableHint">Clique numa linha para ver detalhes</div>
+      </div>
+      <div id="recList" style="margin-top:10px;"></div>
+    </div>
 
-            <div class="card">
-                <div class="card-title">Empréstimos Aprovados</div>
-                <div class="card-value" id="cardEmprestimosAprovados">0</div>
-            </div>
-        </section>
+  </main>
 
-        <!-- TABELA -->
-        <section class="box">
-            <h2>Últimos Recebíveis</h2>
+<script>
+  const adminUser = enforceAuthOrRedirect(['financeiro','admin']);
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Usuário</th>
-                        <th>Valor</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="tabelaUltimosRecebiveis">
-                    <!-- preenchido via JS -->
-                </tbody>
-            </table>
-        </section>
-    </main>
+  fetch('/components/sidebar_admin_collapsible.html')
+    .then(r => r.text())
+    .then(html => document.getElementById('sidebar-container').innerHTML = html);
 
-    <script>
-        /* ============================
-           PROTEÇÃO DE ROTA
-        ============================ */
-        const uStr = localStorage.getItem("usuario");
-        let u = null;
-        try {
-            u = uStr ? JSON.parse(uStr) : null;
-        } catch (e) {
-            u = null;
+  document.getElementById('btnMenu').addEventListener('click', () => {
+    const sb = document.getElementById('sidebar');
+    if (sb) sb.classList.toggle('open');
+  });
+
+  window._barChart = null;
+  let _rowsAll = [];
+
+  function currentFilters() {
+    return {
+      period: document.getElementById('fPeriod').value,
+      status: document.getElementById('fStatus').value,
+      type: document.getElementById('fType').value,
+    };
+  }
+
+  function buildActiveFiltersText(filters) {
+    const parts = [];
+    if (filters.period && filters.period !== 'all') {
+      const [y, m] = filters.period.split('-');
+      parts.push(`Período: ${monthLabel(m)}/${y}`);
+    }
+    if (filters.status && filters.status !== 'all') {
+      const map = { ok: 'Pago/Aprovado', pendente: 'Pendente', processando: 'Em processamento', negado: 'Recusado' };
+      parts.push(`Status: ${map[filters.status] || filters.status}`);
+    }
+    if (filters.type && filters.type !== 'all') {
+      parts.push(`Tipo: ${filters.type === 'recebivel' ? 'Recebível' : 'Produção'}`);
+    }
+    return parts.length ? 'Filtros ativos: ' + parts.join(' · ') : 'Filtros ativos: nenhum';
+  }
+
+  function applyAndRender() {
+    const filters = currentFilters();
+    document.getElementById('activeFilters').textContent = buildActiveFiltersText(filters);
+
+    const [y, m] = String(filters.period || '').split('-');
+    document.getElementById('periodLabel').textContent = (y && m) ? `${monthLabel(m)}/${y}` : 'Admin';
+
+    const filtered = rowsApplyFilters(_rowsAll, filters);
+
+    const k = computeKpis(filtered);
+    document.getElementById('kpi_ok').textContent = fmtBRL(k.totalOk);
+    document.getElementById('kpi_pendente').textContent = fmtBRL(k.totalPend);
+    document.getElementById('kpi_proc').textContent = fmtBRL(k.totalProc);
+
+    const recList = document.getElementById('recList');
+    renderTable(recList, filtered.slice(0, 80), { showUser: true });
+    attachRowClick(recList, filtered.slice(0, 80));
+
+    const chartData = groupPaidByDay(_rowsAll, filters.period);
+    const ctx = document.getElementById('barChart').getContext('2d');
+    if (window._barChart) window._barChart.destroy();
+
+    window._barChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: chartData.labels,
+        datasets: [{
+          label: 'Recebíveis pagos (R$)',
+          data: chartData.values,
+          backgroundColor: '#F6C21B',
+          borderRadius: 8,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (ctx) => fmtBRL(ctx.parsed.y) } }
+        },
+        scales: { y: { beginAtZero: true, ticks: { callback: (v) => 'R$ ' + v } } },
+        onClick: (_evt, elements) => {
+          if (!elements || !elements.length) return;
+          const idx = elements[0].index;
+          const dayLabel = chartData.labels[idx];
+          const f = currentFilters();
+          const dayFiltered = rowsApplyFilters(_rowsAll, f).filter(r => {
+            const d = parseISODateOnly(r.data);
+            return d && String(d.day).padStart(2,'0') === dayLabel;
+          });
+          renderTable(recList, dayFiltered.slice(0, 200), { showUser: true });
+          attachRowClick(recList, dayFiltered.slice(0, 200));
+          document.getElementById('tableHint').textContent = `Filtrado pelo dia ${dayLabel}`;
         }
+      }
+    });
 
-        if (!u) {
-            window.location.href = "/";
-        } else if (u.role !== "financeiro" && u.role !== "admin") {
-            window.location.href = "/colaborador/dashboard.html";
-        }
+    document.getElementById('tableHint').textContent = 'Clique numa linha para ver detalhes';
+  }
 
-        function fazerLogout() {
-            localStorage.removeItem("usuario");
-            window.location.href = "/";
-        }
+  async function loadAdminDashboard() {
+    if (!adminUser) return;
 
-        /* ============================
-           CARREGAR DADOS DO DASHBOARD
-        ============================ */
-        document.addEventListener("DOMContentLoaded", async () => {
-            await Promise.all([
-                carregarRecebiveis(),
-                carregarEmprestimos()
-            ]);
-        });
+    buildMonthYearOptions(document.getElementById('fPeriod'));
 
-        async function carregarRecebiveis() {
-            try {
-                const resp = await fetch("/api/recebiveis");
-                const recebiveis = await resp.json();
+    let recebiveis = [];
+    try {
+      const r = await fetch('/api/recebiveis');
+      recebiveis = await r.json();
+    } catch (e) {
+      console.error('Erro ao carregar recebíveis:', e);
+    }
 
-                let totalPendentes = 0;
-                let totalPagos = 0;
+    _rowsAll = (Array.isArray(recebiveis) ? recebiveis : []).map(r => ({
+      ...r,
+      tipo: r.tipo || 'Recebível'
+    }));
 
-                const corpoTabela = document.getElementById("tabelaUltimosRecebiveis");
-                corpoTabela.innerHTML = "";
+    document.getElementById('btnApply').addEventListener('click', applyAndRender);
+    document.getElementById('btnClear').addEventListener('click', () => {
+      document.getElementById('fStatus').value = 'all';
+      document.getElementById('fType').value = 'all';
+      applyAndRender();
+    });
 
-                recebiveis.forEach(r => {
-                    const valorNum = parseFloat(r.valor || 0);
+    document.getElementById('kpis').addEventListener('click', (ev) => {
+      const card = ev.target.closest('[data-kpi]');
+      if (!card) return;
+      const key = card.getAttribute('data-kpi');
+      document.getElementById('fStatus').value = key;
+      kpiSetActive(document.getElementById('kpis'), key);
+      applyAndRender();
+    });
 
-                    if (r.status === "Pendente") totalPendentes += valorNum;
-                    if (r.status === "Pago") totalPagos += valorNum;
+    document.getElementById('btnExport').addEventListener('click', () => {
+      const filters = currentFilters();
+      const filtered = rowsApplyFilters(_rowsAll, filters);
+      const safe = filtered.map(r => ({
+        id: r.id,
+        usuario: r.nome || '',
+        data: (r.data || '').split(' ')[0],
+        valor: Number(r.valor || 0),
+        tipo: r.tipo || '',
+        status: r.status || ''
+      }));
+      const [y, m] = (filters.period || 'periodo').split('-');
+      downloadCSV(`admin_recebiveis_${y||''}${m||''}.csv`, safe);
+    });
 
-                    corpoTabela.innerHTML += `
-                        <tr>
-                            <td>${r.id}</td>
-                            <td>${r.nome}</td>
-                            <td>R$ ${valorNum.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</td>
-                            <td>${r.status}</td>
-                        </tr>
-                    `;
-                });
+    applyAndRender();
+  }
 
-                document.getElementById("cardRecebiveisPendentes").textContent =
-                    "R$ " + totalPendentes.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
-
-                document.getElementById("cardRecebiveisPagos").textContent =
-                    "R$ " + totalPagos.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
-
-            } catch (err) {
-                console.error("Erro ao carregar recebíveis:", err);
-            }
-        }
-
-        async function carregarEmprestimos() {
-            try {
-                const resp = await fetch("/api/emprestimos");
-                const emprestimos = await resp.json();
-
-                const pendentes = emprestimos.filter(e => e.status === "Em análise").length;
-                const aprovados = emprestimos.filter(e => e.status === "Pago").length;
-
-                document.getElementById("cardEmprestimosPendentes").textContent = pendentes;
-                document.getElementById("cardEmprestimosAprovados").textContent = aprovados;
-
-            } catch (err) {
-                console.error("Erro ao carregar empréstimos:", err);
-            }
-        }
-    </script>
+  document.addEventListener('DOMContentLoaded', loadAdminDashboard);
+</script>
 </body>
 </html>

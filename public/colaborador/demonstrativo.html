@@ -136,8 +136,17 @@ tbody tr:nth-child(even) {
     opacity: .8;
 }
 </style>
+  <script src="/js/ui-common.js"></script>
 </head>
 <body>
+  <div class="mobile-topbar">
+    <button class="btn btn-secondary" id="btnMenu">Menu</button>
+    <div class="small" id="periodLabel">—</div>
+    <button class="btn" onclick="logoutEverywhere()">Sair</button>
+  </div>
+
+  <div id="sidebar-container"></div>
+
 
 <div class="topbar">
     <img src="/img/logo.png">
@@ -148,7 +157,7 @@ tbody tr:nth-child(even) {
 
 <script>
     // Carregar sidebar
-    fetch('/components/sidebar.html')
+    fetch('/components/sidebar_colaborador.html')
         .then(r => r.text())
         .then(html => {
             document.getElementById('sidebar-container').innerHTML = html;
@@ -158,7 +167,7 @@ tbody tr:nth-child(even) {
         });
 </script>
     
-<div class="main">
+<main class="main">
     <h1>Demonstrativo de Produção</h1>
     <div id="msg"></div>
 
@@ -421,5 +430,12 @@ initFiltros();
 carregar();
 </script>
 
+<script>
+// mobile menu
+document.getElementById('btnMenu')?.addEventListener('click', ()=>{
+  const sb=document.getElementById('sidebar');
+  if(sb) sb.classList.toggle('open');
+});
+</script>
 </body>
 </html>

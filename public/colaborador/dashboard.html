@@ -1,236 +1,305 @@
 <!doctype html>
-<html>
+<html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Dashboard Colaborador</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dashboard Colaborador</title>
 
-<link rel="stylesheet" href="/css/style.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/ui-common.js"></script>
+  <script src="/js/dashboard-widgets.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
+  <script>
+    // compat: login admin → colaborador
+    if (localStorage.getItem('usuario') && !localStorage.getItem('user')) {
+      localStorage.setItem('user', localStorage.getItem('usuario'));
+    }
+  </script>
+
+  <div class="mobile-topbar">
+    <button class="btn btn-secondary" id="btnMenu">Menu</button>
+    <div class="small" id="periodLabel">—</div>
+    <button class="btn" onclick="logoutEverywhere()">Sair</button>
+  </div>
+
+  <div id="sidebar-container"></div>
+
+  <main class="main">
+    <div class="header-right">
+      <button class="btn" onclick="logoutEverywhere()">Logout</button>
+    </div>
+
+    <h1>Bem-vindo, <span id="username">Colaborador</span></h1>
+
+    <div class="card">
+      <div class="filter-bar" id="filters">
+        <div class="field">
+          <div class="small">Período</div>
+          <select class="input" id="fPeriod"></select>
+        </div>
+        <div class="field">
+          <div class="small">Status</div>
+          <select class="input" id="fStatus">
+            <option value="all">Todos</option>
+            <option value="ok">Pago/Aprovado</option>
+            <option value="pendente">Pendente</option>
+            <option value="processando">Em processamento</option>
+            <option value="negado">Recusado</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="small">Tipo</div>
+          <select class="input" id="fType">
+            <option value="all">Todos</option>
+            <option value="recebivel">Recebível</option>
+            <option value="producao">Produção</option>
+          </select>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn" id="btnApply">Aplicar</button>
+          <button class="btn btn-secondary" id="btnClear">Limpar</button>
+        </div>
+      </div>
+
+      <div class="small" id="activeFilters"></div>
+    </div>
+
+    <div class="top-cards" id="kpis">
+      <div class="top-card card kpi-card" data-kpi="ok" title="Clique para filtrar pago/aprovado">
+        <div class="small">Total Recebido</div>
+        <div id="kpi_ok" class="huge">R$ 0,00</div>
+      </div>
+
+      <div class="top-card card kpi-card" data-kpi="pendente" title="Clique para filtrar pendentes">
+        <div class="small">Total Pendente</div>
+        <div id="kpi_pendente" class="huge">R$ 0,00</div>
+      </div>
+
+      <div class="top-card card kpi-card" data-kpi="processando" title="Clique para filtrar em processamento">
+        <div class="small">Em Processamento</div>
+        <div id="kpi_proc" class="huge">R$ 0,00</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+        <h3 style="margin:0;">Ganhos no período</h3>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button class="btn btn-secondary" id="btnExport">Exportar CSV</button>
+        </div>
+      </div>
+      <div style="height:260px; margin-top:10px;">
+        <canvas id="barChart"></canvas>
+      </div>
+      <div class="small" style="margin-top:8px;">Dica: clique em um KPI para filtrar rapidamente</div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+        <h3 style="margin:0;">Recebíveis e produção</h3>
+        <div class="small" id="tableHint">Clique numa linha para ver detalhes</div>
+      </div>
+      <div id="recList" style="margin-top:10px;"></div>
+    </div>
+
+  </main>
 
 <script>
-// Sincronizar login admin → colaborador
-if (localStorage.getItem('usuario') && !localStorage.getItem('user')) {
-    localStorage.setItem('user', localStorage.getItem('usuario'));
-}
-</script>
+  // Sidebar (colaborador: usar a recolhível)
+  fetch('/components/sidebar_colaborador.html')
+    .then(r => r.text())
+    .then(html => document.getElementById('sidebar-container').innerHTML = html);
 
-<!-- SIDEBAR -->
-<div id="sidebar-container"></div>
+  // mobile menu
+  document.getElementById('btnMenu').addEventListener('click', () => {
+    const sb = document.getElementById('sidebar');
+    if (sb) sb.classList.toggle('open');
+  });
 
-<main class="main">
+  window._barChart = null;
+  let _rowsAll = [];
 
-  <div class="header-right">
-      <button class="btn" onclick="logout()">Logout</button>
-  </div>
-
-  <h1>Bem-vindo, <span id="username">Colaborador</span></h1>
-
-  <div class="top-cards">
-      <div class="top-card card">
-          <div class="small">Total Recebido</div>
-          <div id="total_recebido" class="huge">R$ 0,00</div>
-      </div>
-
-      <div class="top-card card">
-          <div class="small">Total Pendente</div>
-          <div id="total_pendente" class="huge">R$ 0,00</div>
-      </div>
-
-      <div class="top-card card">
-          <div class="small">Em Processamento</div>
-          <div id="total_processamento" class="huge">R$ 0,00</div>
-      </div>
-  </div>
-
-  <div class="card">
-      <h3>Ganhos no Mês</h3>
-      <div style="height:220px">
-          <canvas id="barChart"></canvas>
-      </div>
-  </div>
-
-  <div class="card">
-      <h3>Recebíveis</h3>
-      <div id="recList"></div>
-  </div>
-
-</main>
-
-<script>
-//////////////////////////////////////////////////////////////////////////////
-// CARREGAR SIDEBAR
-//////////////////////////////////////////////////////////////////////////////
-fetch('/components/sidebar.html')
-  .then(r=>r.text())
-  .then(html=> document.getElementById('sidebar-container').innerHTML = html);
-
-//////////////////////////////////////////////////////////////////////////////
-// FUNÇÕES ÚTEIS
-//////////////////////////////////////////////////////////////////////////////
-function logout(){
-  localStorage.removeItem('user');
-  window.location = '/';
-}
-
-function fmt(v){
-  return 'R$ ' + Number(v||0).toLocaleString(
-    'pt-BR',
-    {minimumFractionDigits:2, maximumFractionDigits:2}
-  );
-}
-
-window._barChart = null;
-
-//////////////////////////////////////////////////////////////////////////////
-// CARREGAR DASHBOARD COMPLETO
-//////////////////////////////////////////////////////////////////////////////
-async function loadDashboard(){
-
-  const rawUser = localStorage.getItem("user") || localStorage.getItem("usuario");
-  if(!rawUser){ window.location='/'; return; }
-
-  const user = JSON.parse(rawUser);
-  if(!user.id){ window.location='/'; return; }
-
-  document.getElementById('username').innerText = user.nome || user.email;
-
-  const hoje = new Date();
-  const mes = String(hoje.getMonth()+1).padStart(2,'0');
-  const ano = hoje.getFullYear();
-
-  let recebiveis = [];
-  let producoes = [];
-
-  try{
-    const [r1, r2] = await Promise.all([
-
-      fetch('/api/recebiveis?user_id='+user.id),
-
-      fetch(`/api/producao/colaborador?usuario_id=${user.id}&mes=${mes}&ano=${ano}`)
-
-    ]);
-
-    recebiveis = await r1.json();
-
-    const p = await r2.json();
-    producoes = Array.isArray(p) ? p : [];
-
-  }catch(e){
-    console.error("Erro ao carregar APIs:", e);
+  function buildActiveFiltersText(filters) {
+    const parts = [];
+    if (filters.period && filters.period !== 'all') {
+      const [y, m] = filters.period.split('-');
+      parts.push(`Período: ${monthLabel(m)}/${y}`);
+    }
+    if (filters.status && filters.status !== 'all') {
+      const map = { ok: 'Pago/Aprovado', pendente: 'Pendente', processando: 'Em processamento', negado: 'Recusado' };
+      parts.push(`Status: ${map[filters.status] || filters.status}`);
+    }
+    if (filters.type && filters.type !== 'all') {
+      parts.push(`Tipo: ${filters.type === 'recebivel' ? 'Recebível' : 'Produção'}`);
+    }
+    return parts.length ? 'Filtros ativos: ' + parts.join(' · ') : 'Filtros ativos: nenhum';
   }
 
-  ///////////////////////////////////////////////////////////////////////
-  // CONVERTER PRODUÇÃO → mesmo formato dos recebíveis
-  ///////////////////////////////////////////////////////////////////////
-  const producoesConvertidas = producoes.map(p => ({
-      id: "P-" + p.id,
+  function currentFilters() {
+    return {
+      period: document.getElementById('fPeriod').value,
+      status: document.getElementById('fStatus').value,
+      type: document.getElementById('fType').value,
+    };
+  }
+
+  function applyAndRender() {
+    const filters = currentFilters();
+    document.getElementById('activeFilters').textContent = buildActiveFiltersText(filters);
+
+    const [y, m] = String(filters.period || '').split('-');
+    document.getElementById('periodLabel').textContent = (y && m) ? `${monthLabel(m)}/${y}` : '—';
+
+    const filtered = rowsApplyFilters(_rowsAll, filters);
+
+    // KPIs (do período filtrado)
+    const k = computeKpis(filtered);
+    document.getElementById('kpi_ok').textContent = fmtBRL(k.totalOk);
+    document.getElementById('kpi_pendente').textContent = fmtBRL(k.totalPend);
+    document.getElementById('kpi_proc').textContent = fmtBRL(k.totalProc);
+
+    // tabela
+    const recList = document.getElementById('recList');
+    renderTable(recList, filtered, { showUser: false });
+    attachRowClick(recList, filtered);
+
+    // gráfico: por dia do mês selecionado
+    const chartData = groupPaidByDay(_rowsAll, filters.period);
+    const ctx = document.getElementById('barChart').getContext('2d');
+    if (window._barChart) window._barChart.destroy();
+    window._barChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: chartData.labels,
+        datasets: [{
+          label: 'Ganhos (R$)',
+          data: chartData.values,
+          backgroundColor: '#F6C21B',
+          borderRadius: 8,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => fmtBRL(ctx.parsed.y)
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { callback: (v) => 'R$ ' + v }
+          }
+        },
+        onClick: (_evt, elements) => {
+          if (!elements || !elements.length) return;
+          const idx = elements[0].index;
+          const dayLabel = chartData.labels[idx];
+          // filtrar tabela por dia
+          const f = currentFilters();
+          const dayFiltered = rowsApplyFilters(_rowsAll, f).filter(r => {
+            const d = parseISODateOnly(r.data);
+            return d && String(d.day).padStart(2,'0') === dayLabel;
+          });
+          renderTable(recList, dayFiltered, { showUser: false });
+          attachRowClick(recList, dayFiltered);
+          document.getElementById('tableHint').textContent = `Filtrado pelo dia ${dayLabel} (clique em um KPI para mudar o status ou limpe filtros)`;
+        }
+      }
+    });
+
+    document.getElementById('tableHint').textContent = 'Clique numa linha para ver detalhes';
+  }
+
+  async function loadDashboard() {
+    const user = enforceAuthOrRedirect(['colaborador','admin','financeiro']);
+    if (!user) return;
+
+    document.getElementById('username').textContent = user.nome || user.email;
+
+    // filtros default
+    buildMonthYearOptions(document.getElementById('fPeriod'));
+
+    const hoje = new Date();
+    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+    const ano = hoje.getFullYear();
+
+    let recebiveis = [];
+    let producoes = [];
+
+    try {
+      const [r1, r2] = await Promise.all([
+        fetch('/api/recebiveis?user_id=' + user.id),
+        fetch(`/api/producao/colaborador?usuario_id=${user.id}&mes=${mes}&ano=${ano}`)
+      ]);
+      recebiveis = await r1.json();
+      const p = await r2.json();
+      producoes = Array.isArray(p) ? p : [];
+    } catch (e) {
+      console.error('Erro ao carregar APIs:', e);
+    }
+
+    const producoesConvertidas = producoes.map(p => ({
+      id: 'P-' + p.id,
       data: p.data,
       valor: Number(p.total_calculado || 0),
-      tipo: "Produção",
-      status: p.nota_status || "pendente"
-  }));
+      tipo: 'Produção',
+      status: p.nota_status || 'pendente'
+    }));
 
-  const rows = [...recebiveis, ...producoesConvertidas];
+    // normalizar recebíveis para ter tipo consistente
+    const recebiveisNorm = (Array.isArray(recebiveis) ? recebiveis : []).map(r => ({
+      ...r,
+      tipo: r.tipo || 'Recebível'
+    }));
 
-  ///////////////////////////////////////////////////////////////////////
-  // SOMAR CARDS
-  ///////////////////////////////////////////////////////////////////////
-  let total=0, pend=0, proc=0;
+    _rowsAll = [...recebiveisNorm, ...producoesConvertidas];
 
-  rows.forEach(r=>{
-    const v = Number(r.valor||0);
-    const st = (r.status||'').toLowerCase();
+    // botões
+    document.getElementById('btnApply').addEventListener('click', applyAndRender);
+    document.getElementById('btnClear').addEventListener('click', () => {
+      document.getElementById('fStatus').value = 'all';
+      document.getElementById('fType').value = 'all';
+      // mantém período selecionado
+      applyAndRender();
+    });
 
-    if(st.includes("pago") || st.includes("aprov")) total += v;
-    else if(st.includes("pend")) pend += v;
-    else proc += v;
-  });
+    // KPI clicável → filtra status
+    document.getElementById('kpis').addEventListener('click', (ev) => {
+      const card = ev.target.closest('[data-kpi]');
+      if (!card) return;
+      const key = card.getAttribute('data-kpi');
+      document.getElementById('fStatus').value = key;
+      kpiSetActive(document.getElementById('kpis'), key);
+      applyAndRender();
+    });
 
-  document.getElementById('total_recebido').innerText = fmt(total);
-  document.getElementById('total_pendente').innerText = fmt(pend);
-  document.getElementById('total_processamento').innerText = fmt(proc);
+    // export CSV (aplica filtros atuais)
+    document.getElementById('btnExport').addEventListener('click', () => {
+      const filters = currentFilters();
+      const filtered = rowsApplyFilters(_rowsAll, filters);
+      const safe = filtered.map(r => ({
+        id: r.id,
+        data: (r.data || '').split(' ')[0],
+        valor: Number(r.valor || 0),
+        tipo: r.tipo || '',
+        status: r.status || ''
+      }));
+      const [y, m] = (filters.period || 'periodo').split('-');
+      downloadCSV(`colaborador_${user.id}_${y||''}${m||''}.csv`, safe);
+    });
 
-  ///////////////////////////////////////////////////////////////////////
-  // TABELA
-  ///////////////////////////////////////////////////////////////////////
-  if(rows.length === 0){
-      document.getElementById('recList').innerHTML =
-        '<p class="small">Nenhum recebível.</p>';
-  } else {
-      let html =
-        `<table class="table"><tr>
-          <th>ID</th><th>Data</th><th>Valor</th><th>Tipo</th><th>Status</th>
-        </tr>`;
-
-      rows.forEach(r=>{
-        html += `
-          <tr>
-            <td>${r.id}</td>
-            <td>${r.data||''}</td>
-            <td>${fmt(r.valor)}</td>
-            <td>${r.tipo||''}</td>
-            <td>${r.status||''}</td>
-          </tr>`;
-      });
-
-      html += `</table>`;
-      document.getElementById('recList').innerHTML = html;
+    applyAndRender();
   }
 
-  ///////////////////////////////////////////////////////////////////////
-  // GRÁFICO - somente recebidos (pago/aprovado)
-  ///////////////////////////////////////////////////////////////////////
-  const byMonth = {};
-
-  rows.forEach(r=>{
-    const st = (r.status||'').toLowerCase();
-    if(!st.includes('pago') && !st.includes('aprov')) return;
-
-    const date = r.data ? r.data.split(' ')[0] : '0000-00-00';
-    const m = date.split('-')[1] || "00";
-
-    byMonth[m] = (byMonth[m] || 0) + Number(r.valor||0);
-  });
-
-  const months = Object.keys(byMonth).sort();
-  const labels = months.map(m =>
-    ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][parseInt(m)-1] || m
-  );
-  const data = months.map(m => byMonth[m] || 0);
-
-  const ctx = document.getElementById('barChart').getContext('2d');
-
-  if(window._barChart) window._barChart.destroy();
-
-  window._barChart = new Chart(ctx,{
-      type:'bar',
-      data:{
-          labels,
-          datasets:[{
-              label:'Ganhos (R$)',
-              data,
-              backgroundColor:'#F6C21B',
-              borderRadius:6
-          }]
-      },
-      options:{
-          scales:{
-            y:{ beginAtZero:true, ticks:{ callback:v=>'R$ '+v } }
-          },
-          plugins:{ legend:{ display:false } },
-          responsive:true,
-          maintainAspectRatio:false
-      }
-  });
-
-}
-
-window.onload = loadDashboard;
+  window.addEventListener('load', loadDashboard);
 </script>
-
 </body>
 </html>

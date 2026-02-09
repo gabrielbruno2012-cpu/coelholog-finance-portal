@@ -3,8 +3,17 @@
 <head>
 <meta charset="utf-8">
 <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/ui-common.js"></script>
 </head>
 <body>
+  <div class="mobile-topbar">
+    <button class="btn btn-secondary" id="btnMenu">Menu</button>
+    <div class="small" id="periodLabel">—</div>
+    <button class="btn" onclick="logoutEverywhere()">Sair</button>
+  </div>
+
+  <div id="sidebar-container"></div>
+
 
 <script>
 // Sync admin login -> collaborator login
@@ -13,7 +22,7 @@ if (localStorage.getItem('usuario') && !localStorage.getItem('user')) {
 }
 </script>
 
-<div id="sidebar-container"></div>
+
 
 <main class="main">
 <h2>Recebíveis</h2>
@@ -21,7 +30,7 @@ if (localStorage.getItem('usuario') && !localStorage.getItem('user')) {
 </main>
 
 <script>
-fetch('/components/sidebar.html')
+fetch('/components/sidebar_colaborador.html')
   .then(r => r.text())
   .then(html => document.getElementById('sidebar-container').innerHTML = html);
 
@@ -109,5 +118,12 @@ async function load() {
 document.addEventListener("DOMContentLoaded", load);
 </script>
 
+<script>
+// mobile menu
+document.getElementById('btnMenu')?.addEventListener('click', ()=>{
+  const sb=document.getElementById('sidebar');
+  if(sb) sb.classList.toggle('open');
+});
+</script>
 </body>
 </html>
