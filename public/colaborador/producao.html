@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/css/style.css">
   <script src="/js/ui-common.js"></script>
   <script src="/js/dashboard-widgets.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -81,7 +82,23 @@
       <div id="prodList" style="margin-top:10px;"></div>
     </div>
 
-  </main>
+  
+    <div class="card">
+      <div class="row" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div>
+          <h2 style="margin:0">Total por dia</h2>
+          <div class="small">Dica: clique em uma barra para filtrar a tabela por aquele dia</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-secondary" id="btnExport">Exportar CSV</button>
+        </div>
+      </div>
+      <div class="chart-wrap" style="margin-top:12px">
+        <canvas id="barChart"></canvas>
+      </div>
+    </div>
+
+</main>
 
 <script>
   // Sidebar colaborador
@@ -268,7 +285,65 @@
   });
 
   document.addEventListener('DOMContentLoaded', load);
-</script>
 
-</body>
+  // chart + export
+  window._barChart = null;
+
+  function groupTotalByDay(rows, ym){
+    const out = {};
+    for(const r of rows){
+      const d = parseISODateOnly(r.data);
+      if(!d) continue;
+      const key = `${d.y}-${String(d.m).padStart(2,'0')}`;
+      if(ym && key!==ym) continue;
+      const k = String(d.day).padStart(2,'0');
+      out[k] = (out[k]||0) + (Number(r.total)||0);
+    }
+    const labels = Object.keys(out).sort();
+    const values = labels.map(l=>out[l]);
+    return {labels, values};
+  }
+
+  function renderChart(rows, ym){
+    const ctx = document.getElementById('barChart');
+    if(!ctx) return;
+    const {labels, values} = groupTotalByDay(rows, ym);
+    const c = ctx.getContext('2d');
+    if(window._barChart) window._barChart.destroy();
+    window._barChart = new Chart(c, {
+      type:'bar',
+      data:{ labels, datasets:[{ label:'Total (R$)', data: values, backgroundColor:'#F6C21B' }] },
+      options:{
+        responsive:true,
+        plugins:{ tooltip:{ callbacks:{ label:(i)=> fmtBRL(i.raw) } } },
+        scales:{ y:{ ticks:{ callback:(v)=> 'R$ '+Number(v).toLocaleString('pt-BR') } } },
+        onClick:(evt, els)=>{
+          if(!els || !els.length) return;
+          const idx = els[0].index;
+          const day = labels[idx];
+          // aplica filtro por dia (YYYY-MM-DD)
+          window._dayFilter = day;
+          applyAndRender();
+        }
+      }
+    });
+  }
+
+  function exportCSV(rows, ym){
+    const safe = (ym||'periodo').replace('-','');
+    const out = rows.map(r=>({
+      id:r.id,
+      data:r.data,
+      entregas:r.entregas,
+      fs:r.fs,
+      bobina:r.bobina,
+      fixo:r.fixo,
+      desconto:r.desconto,
+      total:r.total,
+      nota_status:r.nota_status||'',
+    }));
+    downloadCSV(`producao_${safe}.csv`, out);
+  }
+
+
 </html>
